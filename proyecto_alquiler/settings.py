@@ -68,6 +68,10 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://softalquiler.tecnonacho.com"
+]
+
 # CONFIGURACIÓN DE SEGURIDAD SOLO PARA PRODUCCIÓN REAL
 if not DEBUG and not USE_LOCAL:
     SESSION_COOKIE_SECURE = True
