@@ -21,13 +21,15 @@ USE_LOCAL = config('USE_LOCAL', default=True, cast=bool)
 
 # CONFIGURACIÓN DE HOSTS SEGÚN ENTORNO
 if USE_LOCAL:
-    # Desarrollo local - usar siempre HTTP
+    # Desarrollo local
     ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
-    DEBUG = True  # Forzar DEBUG=True en desarrollo local
-elif DEBUG:
-    ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'softalquiler.tecnonacho.com']
 else:
-    ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='').split(',')
+    # Producción: toma desde .env y convierte a lista
+    ALLOWED_HOSTS = config(
+        'ALLOWED_HOSTS',
+        default='127.0.0.1,localhost,softalquiler.tecnonacho.com',
+        cast=lambda v: [s.strip() for s in v.split(',')]
+    )
 
 # Apps
 INSTALLED_APPS = [
