@@ -233,7 +233,7 @@ else:
     MEDIA_ROOT = BASE_DIR / 'media'
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Configuración para CKEditor uploads
+
 CKEDITOR_UPLOAD_PATH = "uploads/"
 
 # Default primary key

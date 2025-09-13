@@ -232,7 +232,7 @@ def detalle_equipo(request, id):
     })
 
 
-
+@login_required
 def equipos_disponibles(request):
     equipos = Equipo.objects.filter(estado='disponible')
     return render(request, 'lista.html', {'equipos': equipos})
@@ -245,7 +245,7 @@ def cambiar_estado_equipo(request, id, nuevo_estado):
     equipo.save()
     return redirect('alquiler:listar_equipos')
 
-
+@login_required
 def equipos_por_estado(request, estado):
     equipos = Equipo.objects.filter(estado=estado)
     return render(request, 'lista.html', {'equipos': equipos})
@@ -467,7 +467,7 @@ def exportar_equipos_json(request):
     data = [equipo.exportar_informacion() for equipo in equipos]
     return JsonResponse({'equipos': data}, safe=False)
 
-
+@login_required
 def enviar_alertas_vencimiento():
     hoy = timezone.now().date()
     fecha_limite = hoy + timedelta(days=7)
@@ -1037,7 +1037,7 @@ def exportar_a_excel_mensual(labels, datos_alquileres, datos_ingresos):
     response['Content-Disposition'] = 'attachment; filename=estadisticas_mensuales.xlsx'
     return response
 
-
+@login_required
 def exportar_a_pdf(request, equipos, labels, datos_alquileres, datos_ingresos, 
                 total_equipos, total_alquileres, total_clientes, ingresos_totales):
     response = HttpResponse(content_type='application/pdf')

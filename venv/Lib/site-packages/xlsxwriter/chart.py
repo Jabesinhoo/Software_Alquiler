@@ -11,11 +11,12 @@ import copy
 import re
 from warnings import warn
 
+from xlsxwriter.color import Color, ColorTypes
+
 from . import xmlwriter
 from .shape import Shape
 from .utility import (
     _datetime_to_excel_datetime,
-    _get_rgb_color,
     _supported_datetime,
     quote_sheetname,
     xl_range_formula,
@@ -204,7 +205,10 @@ class Chart(xmlwriter.XMLwriter):
 
         # Set the "invert if negative" fill property.
         invert_if_neg = options.get("invert_if_negative", False)
-        inverted_color = options.get("invert_if_negative_color", False)
+        inverted_color = options.get("invert_if_negative_color")
+
+        if inverted_color:
+            inverted_color = Color._from_value(inverted_color)
 
         # Set the secondary axis properties.
         x2_axis = options.get("x2_axis")
@@ -844,6 +848,9 @@ class Chart(xmlwriter.XMLwriter):
         # Convert rotation into 60,000ths of a degree.
         if font["rotation"]:
             font["rotation"] = 60000 * int(font["rotation"])
+
+        if font.get("color"):
+            font["color"] = Color._from_value(font["color"])
 
         return font
 
@@ -1889,7 +1896,7 @@ class Chart(xmlwriter.XMLwriter):
 
         self._xml_end_tag("c:ser")
 
-    def _write_c_ext_lst_inverted_color(self, color):
+    def _write_c_ext_lst_inverted_color(self, color: Color):
         # Write the <c:extLst> element for the inverted fill color.
 
         uri = "{6F2FDCE9-48DA-4B69-8628-5D25D57E5C99}"
@@ -3156,7 +3163,7 @@ class Chart(xmlwriter.XMLwriter):
         style_attributes = Shape._get_font_style_attributes(font)
         latin_attributes = Shape._get_font_latin_attributes(font)
 
-        if font and font.get("color") is not None:
+        if font and font.get("color"):
             has_color = True
 
         if latin_attributes or has_color:
@@ -3201,7 +3208,7 @@ class Chart(xmlwriter.XMLwriter):
         style_attributes = Shape._get_font_style_attributes(font)
         latin_attributes = Shape._get_font_latin_attributes(font)
 
-        if font and font["color"] is not None:
+        if font and font["color"]:
             has_color = True
 
         # Add the lang type to the attributes.
@@ -3362,17 +3369,46 @@ class Chart(xmlwriter.XMLwriter):
 
         self._xml_start_tag("a:solidFill")
 
-        if "color" in fill:
-            color = _get_rgb_color(fill["color"])
-            transparency = fill.get("transparency")
-            # Write the a:srgbClr element.
-            self._write_a_srgb_clr(color, transparency)
+        if fill.get("color"):
+            self._write_color(fill["color"], fill.get("transparency"))
 
         self._xml_end_tag("a:solidFill")
 
-    def _write_a_srgb_clr(self, val, transparency=None):
+    def _write_color(self, color: Color, transparency=None):
+        # Write the appropriate chart color element.
+
+        if not color:
+            return
+
+        if color._is_automatic:
+            # Write the a:sysClr element.
+            self._write_a_sys_clr()
+        elif color._type == ColorTypes.RGB:
+            # Write the a:srgbClr element.
+            self._write_a_srgb_clr(color, transparency)
+        elif color._type == ColorTypes.THEME:
+            self._write_a_scheme_clr(color, transparency)
+
+    def _write_a_sys_clr(self):
+        # Write the <a:sysClr> element.
+
+        val = "window"
+        last_clr = "FFFFFF"
+
+        attributes = [
+            ("val", val),
+            ("lastClr", last_clr),
+        ]
+
+        self._xml_empty_tag("a:sysClr", attributes)
+
+    def _write_a_srgb_clr(self, color: Color, transparency=None):
         # Write the <a:srgbClr> element.
-        attributes = [("val", val)]
+
+        if not color:
+            return
+
+        attributes = [("val", color._rgb_hex_value())]
 
         if transparency:
             self._xml_start_tag("a:srgbClr", attributes)
@@ -3383,6 +3419,42 @@ class Chart(xmlwriter.XMLwriter):
             self._xml_end_tag("a:srgbClr")
         else:
             self._xml_empty_tag("a:srgbClr", attributes)
+
+    def _write_a_scheme_clr(self, color: Color, transparency=None):
+        # Write the <a:schemeClr> element.
+        scheme, lum_mod, lum_off = color._chart_scheme()
+        attributes = [("val", scheme)]
+
+        if lum_mod > 0 or lum_off > 0 or transparency:
+            self._xml_start_tag("a:schemeClr", attributes)
+
+            if lum_mod > 0:
+                # Write the a:lumMod element.
+                self._write_a_lum_mod(lum_mod)
+
+            if lum_off > 0:
+                # Write the a:lumOff element.
+                self._write_a_lum_off(lum_off)
+
+            if transparency:
+                # Write the a:alpha element.
+                self._write_a_alpha(transparency)
+
+            self._xml_end_tag("a:schemeClr")
+        else:
+            self._xml_empty_tag("a:schemeClr", attributes)
+
+    def _write_a_lum_mod(self, value: int):
+        # Write the <a:lumMod> element.
+        attributes = [("val", value)]
+
+        self._xml_empty_tag("a:lumMod", attributes)
+
+    def _write_a_lum_off(self, value: int):
+        # Write the <a:lumOff> element.
+        attributes = [("val", value)]
+
+        self._xml_empty_tag("a:lumOff", attributes)
 
     def _write_a_alpha(self, val):
         # Write the <a:alpha> element.
@@ -4279,9 +4351,7 @@ class Chart(xmlwriter.XMLwriter):
             attributes = [("pos", pos)]
             self._xml_start_tag("a:gs", attributes)
 
-            # Write the a:srgbClr element.
-            color = _get_rgb_color(color)
-            self._write_a_srgb_clr(color)
+            self._write_color(color)
 
             self._xml_end_tag("a:gs")
 
@@ -4357,26 +4427,14 @@ class Chart(xmlwriter.XMLwriter):
 
         self._xml_end_tag("a:pattFill")
 
-    def _write_a_fg_clr(self, color):
+    def _write_a_fg_clr(self, color: Color):
         # Write the <a:fgClr> element.
-
-        color = _get_rgb_color(color)
-
         self._xml_start_tag("a:fgClr")
-
-        # Write the a:srgbClr element.
-        self._write_a_srgb_clr(color)
-
+        self._write_color(color)
         self._xml_end_tag("a:fgClr")
 
-    def _write_a_bg_clr(self, color):
+    def _write_a_bg_clr(self, color: Color):
         # Write the <a:bgClr> element.
-
-        color = _get_rgb_color(color)
-
         self._xml_start_tag("a:bgClr")
-
-        # Write the a:srgbClr element.
-        self._write_a_srgb_clr(color)
-
+        self._write_color(color)
         self._xml_end_tag("a:bgClr")

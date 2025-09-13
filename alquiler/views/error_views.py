@@ -3,6 +3,7 @@ from django.shortcuts import render
 from django.template import loader
 from django.http import HttpResponseForbidden, HttpResponseNotFound, HttpResponseServerError
 
+
 def handler403(request, exception=None):
     """Vista personalizada para error 403 - Prohibido"""
     context = {

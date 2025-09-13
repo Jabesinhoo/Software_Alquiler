@@ -1,4 +1,4 @@
-#!C:\Users\Jabes\Documents\GitHub\Software_Alquiler\venv\Scripts\python.exe
+#!C:\Users\USER\Downloads\inventario-app\Software_Alquiler\venv\Scripts\python.exe
 
 ##############################################################################
 #

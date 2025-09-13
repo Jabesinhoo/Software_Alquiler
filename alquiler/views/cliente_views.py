@@ -149,7 +149,7 @@ def marcar_como_moroso(request, cliente_id):
     
     return render(request, 'confirmar_moroso.html', {'cliente': cliente})
 
-
+@login_required
 def actualizar_morosidad_clientes():
     # Fecha límite para considerar moroso (15 días de gracia)
     fecha_limite_moroso = timezone.now().date() - timedelta(days=2)

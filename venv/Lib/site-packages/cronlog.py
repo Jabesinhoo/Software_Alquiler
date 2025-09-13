@@ -21,11 +21,11 @@ Access logs in known locations to find information about them.
 import os
 import re
 import codecs
-import platform
-from dateutil import parser as dateparse
+from datetime import datetime
 
 MATCHER = r'(?P<date>\w+ +\d+ +\d\d:\d\d:\d\d) (?P<host>\w+) ' + \
         r'CRON\[(?P<pid>\d+)\]: \((?P<user>\w+)\) CMD \((?P<cmd>.*)\)'
+
 
 class LogReader(object):
     """Opens a Log file, reading backwards and watching for changes"""
@@ -82,6 +82,10 @@ class LogReader(object):
                 loc -= len(line)
 
 
+def cron_date_to_datetime(cron_str):
+    with_year = f"{cron_str} {datetime.now().year}"
+    return datetime.strptime(with_year, "%b %d %H:%M:%S %Y")
+
 
 class CronLog(LogReader):
     """Use the LogReader to make a Cron specific log reader"""
@@ -98,7 +102,7 @@ class CronLog(LogReader):
             match = re.match(MATCHER, str(line))
             datum = match and match.groupdict()
             if datum and (not self.user or datum['user'] == self.user):
-                datum['date'] = dateparse.parse(datum['date'])
+                datum['date'] = cron_date_to_datetime(datum['date'])
                 yield datum
 
 
@@ -112,4 +116,3 @@ class ProgramLog(object):
         for entry in self.log:
             if entry['cmd'] == str(self.command):
                 yield entry
-

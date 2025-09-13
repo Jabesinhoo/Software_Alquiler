@@ -139,7 +139,7 @@ def alquileres_a_vencer(request):
         'fecha_limite': fecha_limite,
     })
 
-
+@login_required
 def enviar_alertas_vencimiento(alquileres_por_vencer):
     hoy = timezone.now().date()
     
@@ -947,7 +947,7 @@ def generar_acta_devolucion(request, id):
     response['Content-Disposition'] = f'attachment; filename="acta_devolucion_{alquiler.id}.pdf"'
     return response
 
-#esta funcion debe de ser una tare cron o automatizada
+@login_required
 def alertas_devoluciones_proximas():
     proximos = Alquiler.objects.filter(
         fecha_fin=timezone.now().date() + timedelta(days=1),
@@ -1352,6 +1352,8 @@ def renovar_contrato(request, id):
     }
 
     return render(request, 'renovar_contrato.html', context)
+
+
 @login_required
 @permission_required('alquiler.delete_alquiler', raise_exception=True)
 def eliminar_alquiler(request, id):

@@ -116,7 +116,7 @@ def reportes_pagos(request):
 
     return render(request, 'reportes_pagos.html', context)
 
-
+@login_required
 def calcular_metricas_pagos(pagos):
     """Calcula métricas principales de los pagos"""
     total_pagado = pagos.filter(estado_pago='pagado').aggregate(total=Sum('monto'))['total'] or 0
@@ -147,7 +147,7 @@ def calcular_metricas_pagos(pagos):
         'tasa_cumplimiento': round(tasa_cumplimiento, 2),
     }
 
-
+@login_required
 def obtener_datos_graficas(pagos, periodo, fecha_inicio, fecha_fin):
     """Obtiene datos para las gráficas según el período seleccionado"""
 
@@ -215,7 +215,7 @@ def obtener_datos_graficas(pagos, periodo, fecha_inicio, fecha_fin):
         }
     }
 
-
+@login_required
 def analizar_tendencias(pagos, fecha_inicio, fecha_fin):
     """Analiza tendencias de pagos comparando con períodos anteriores"""
 
@@ -257,7 +257,7 @@ def analizar_tendencias(pagos, fecha_inicio, fecha_fin):
         'variacion_cantidad': round(variacion_cantidad, 2),
     }
 
-
+@login_required
 def obtener_top_clientes(pagos):
     """Obtiene los clientes con más pagos/montos"""
     # Se agrega .distinct() si un cliente puede tener múltiples alquileres y quieres sumarlos una vez
@@ -273,7 +273,7 @@ def obtener_top_clientes(pagos):
 
     return top_clientes_list
 
-
+@login_required
 def exportar_csv_pagos(pagos, fecha_inicio, fecha_fin):
     """Exporta los pagos filtrados a CSV"""
     response = HttpResponse(content_type='text/csv')
@@ -480,7 +480,7 @@ def cambiar_estado_pago(request, pago_uuid, nuevo_estado):
     
     return redirect('alquiler:detalle_pago', pago_uuid=pago.uuid_id)
 
-
+@login_required
 def enviar_confirmacion_pago(pago):
     try:
         cliente = pago.alquiler.cliente
@@ -701,7 +701,7 @@ def generar_factura_pdf(request, pago_uuid):
     
     return HttpResponse("Error al generar el PDF", status=400)
 
-
+@login_required
 def verificar_morosidad_cliente(cliente_uuid):
     cliente = get_object_or_404(Cliente, id=cliente_uuid)
     pagos_vencidos = Pago.objects.filter(
@@ -780,7 +780,7 @@ def registrar_pago_parcial(request):
 
     return render(request, 'registrar_pago_parcial.html', context)
 
-
+@login_required
 def verificar_estado_pago_alquiler(alquiler):
     total_pagado = alquiler.pagos.aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
     

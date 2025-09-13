@@ -1,5 +1,5 @@
 #
-# Copyright 2021, Martin Owens <doctormo@gmail.com>
+# Copyright 2025, Martin Owens <doctormo@gmail.com>
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -100,7 +100,7 @@ from collections import OrderedDict
 from shutil import which
 
 __pkgname__ = 'python-crontab'
-__version__ = '3.2.0'
+__version__ = '3.3.0'
 
 ITEMREX = re.compile(r'^\s*([^@#\s]+)\s+([^@#\s]+)\s+([^@#\s]+)\s+([^@#\s]+)'
                      r'\s+([^@#\s]+)\s+([^\n]*?)(\s+#\s*([^\n]*)|$)')
@@ -112,6 +112,7 @@ WEEK_ENUM = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 MONTH_ENUM = [None, 'jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug',
               'sep', 'oct', 'nov', 'dec']
 
+SPECIALS_CONVERSION = True
 SPECIALS = {"reboot":   '@reboot',
             "hourly":   '0 * * * *',
             "daily":    '0 0 * * *',
@@ -433,14 +434,10 @@ class CronTab:
             sleep(cadence)
             count += 1
 
-    def render(self, errors=False, specials=True):
+    def render(self, errors=False):
         """Render this crontab as it would be in the crontab.
 
         errors - Should we not comment out invalid entries and cause errors?
-        specials - Turn known times into keywords such as "@daily"
-            True - (default) force all values to be converted (unless SYSTEMV)
-            False - force all values back from being a keyword
-            None - don't change the special keyword use
         """
         crons = []
         for line in self.lines:
@@ -454,7 +451,7 @@ class CronTab:
             elif isinstance(line, CronItem):
                 if not line.is_valid() and not errors:
                     line.enabled = False
-                crons.append(line.render(specials=specials).strip())
+                crons.append(line.render().strip())
 
         # Environment variables are attached to cron lines so order will
         # always work no matter how you add lines in the middle of the stack.
@@ -727,7 +724,7 @@ class CronItem:
         """Return true if this job is valid"""
         return self.valid
 
-    def render(self, specials=True):
+    def render(self):
         """Render this set cron-job to a string"""
         if not self.is_valid() and self.enabled:
             raise ValueError('Refusing to render invalid crontab.'
@@ -738,7 +735,7 @@ class CronItem:
             if not self.user:
                 raise ValueError("Job to system-cron format, no user set!")
             user = self.user + ' '
-        rend = self.slices.render(specials=specials)
+        rend = self.slices.render()
         result = f"{rend} {user}{command}"
         if self.stdin:
             result += ' %' + self.stdin.replace('\n', '%')
@@ -818,10 +815,6 @@ class CronItem:
            (defaults to this year)
         """
         return self.slices.frequency_at_year(year=year)
-
-    def frequency(self, year=None):
-        """Return frequence per year times frequency per day"""
-        return self.frequency_per_year(year=year) * self.frequency_per_day()
 
     def frequency_per_year(self, year=None):
         """Returns the number of /days/ this item will execute on in a year
@@ -1063,14 +1056,14 @@ class CronSlices(list):
         """Return just numbered parts of this crontab"""
         return ' '.join([str(s) for s in self])
 
-    def render(self, specials=True):
+    def render(self):
         "Return just the first part of a cron job (the numbers or special)"
         slices = self.clean_render()
-        if self.special and specials is not False:
+        if self.special and SPECIALS_CONVERSION is not False:
             if self.special == '@reboot' or \
                     SPECIALS[self.special.strip('@')] == slices:
                 return self.special
-        if not SYSTEMV and specials is True:
+        if not SYSTEMV and SPECIALS_CONVERSION is True:
             for (name, value) in SPECIALS.items():
                 if value == slices and name not in SPECIAL_IGNORE:
                     return f"@{name}"
