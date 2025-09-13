@@ -1,6 +1,11 @@
 from django.contrib import admin
-from .models import Cliente, Equipo, Alquiler, Pago, Contrato
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from .models import Cliente, Equipo, Alquiler, Pago, Contrato, Usuario, Rol
 
+
+# ========================
+# Registro de modelos propios
+# ========================
 admin.site.register(Equipo)
 admin.site.register(Alquiler)
 admin.site.register(Pago)
@@ -34,19 +39,39 @@ class ClienteAdmin(admin.ModelAdmin):
         }),
     )
 
-from django.contrib.auth.models import User, Group
-from django.contrib.auth.admin import UserAdmin, GroupAdmin
 
-# 🔹 Registrar usuarios y grupos en el admin
-try:
-    admin.site.unregister(User)
-except admin.sites.NotRegistered:
-    pass
+# ========================
+# Registro de Roles
+# ========================
+@admin.register(Rol)
+class RolAdmin(admin.ModelAdmin):
+    list_display = ("nombre_rol", "descripcion")
+    search_fields = ("nombre_rol",)
+    filter_horizontal = ("permisos",)
 
-try:
-    admin.site.unregister(Group)
-except admin.sites.NotRegistered:
-    pass
 
-admin.site.register(User, UserAdmin)
-admin.site.register(Group, GroupAdmin)
+# ========================
+# Usuario personalizado
+# ========================
+@admin.register(Usuario)
+class UsuarioAdmin(BaseUserAdmin):
+    list_display = ("nombre_usuario", "rol", "estado_usuario", "is_active", "is_staff", "is_superuser")
+    list_filter = ("estado_usuario", "is_active", "is_staff", "is_superuser", "rol")
+    search_fields = ("nombre_usuario",)
+    ordering = ("nombre_usuario",)
+
+    fieldsets = (
+        (None, {"fields": ("nombre_usuario", "password")}),
+        ("Información personal", {"fields": ("rol", "cliente", "estado_usuario")}),
+        ("Permisos", {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions")}),
+        ("Fechas importantes", {"fields": ("ultimo_acceso",)}),
+    )
+
+    add_fieldsets = (
+        (None, {
+            "classes": ("wide",),
+            "fields": ("nombre_usuario", "password1", "password2", "rol", "is_staff", "is_active"),
+        }),
+    )
+
+    filter_horizontal = ("groups", "user_permissions")
