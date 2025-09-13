@@ -153,6 +153,8 @@ core_patterns = [
 
 urlpatterns = [
     path('', RedirectView.as_view(url='/guanabanazo/')),
+    path('guanabanazo/admin/', admin.site.urls),
+
     path('guanabanazo/', include((core_patterns, 'alquiler'), namespace='alquiler')),
 ]
 
