@@ -33,3 +33,20 @@ class ClienteAdmin(admin.ModelAdmin):
             'fields': ('moroso', 'dias_mora', 'deuda_total', 'fecha_marcado_moroso')
         }),
     )
+
+from django.contrib.auth.models import User, Group
+from django.contrib.auth.admin import UserAdmin, GroupAdmin
+
+# 🔹 Registrar usuarios y grupos en el admin
+try:
+    admin.site.unregister(User)
+except admin.sites.NotRegistered:
+    pass
+
+try:
+    admin.site.unregister(Group)
+except admin.sites.NotRegistered:
+    pass
+
+admin.site.register(User, UserAdmin)
+admin.site.register(Group, GroupAdmin)
