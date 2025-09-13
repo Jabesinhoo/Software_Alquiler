@@ -25,7 +25,7 @@ if USE_LOCAL:
     ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
     DEBUG = True  # Forzar DEBUG=True en desarrollo local
 elif DEBUG:
-    ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+    ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'softalquiler.tecnonacho.com']
 else:
     ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='').split(',')
 
