@@ -754,25 +754,32 @@ body:not(.dark-mode) .menu-toggle {
 }
 
 
+html, body {
+    height: 100%;
+    overflow-x: hidden;
+}
+
+
 @media (max-width: 768px) {
     .sidebar {
         width: 280px;
         position: fixed;
         top: 0;
-        bottom: 0;
+        bottom: 0;              /* 🔑 hace que ocupe toda la altura */
         left: 0;
         transform: translateX(-100%);
         transition: transform 0.3s ease;
-        overflow-y: scroll;        /* usar scroll en vez de auto */
-        -webkit-overflow-scrolling: touch; /* scroll fluido en iOS */
+        overflow-y: auto;       /* 🔑 scroll vertical */
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch; /* 🔑 scroll fluido en iOS */
+        max-height: 100%;       /* 🔑 evita cortes */
+        z-index: 1000;
     }
 
     .sidebar.active {
         transform: translateX(0);
         box-shadow: 5px 0 15px rgba(0, 0, 0, 0.2);
     }
-
-
 
     .sidebar-header,
     .sidebar-title,
