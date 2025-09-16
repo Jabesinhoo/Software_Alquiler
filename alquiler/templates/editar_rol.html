@@ -20,11 +20,11 @@
             {% csrf_token %}
             <div class="card-body">
                 <div class="form-group">
-                    <label for="{{ form.nombre_rol.id_for_label }}">Nombre del Rol</label>
-                    {{ form.nombre_rol }}
-                    {% if form.nombre_rol.errors %}
+                    <label for="{{ form.name.id_for_label }}">Nombre del Rol</label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
                     <div class="invalid-feedback d-block">
-                        {{ form.nombre_rol.errors.as_text }}
+                        {{ form.name.errors.as_text }}
                     </div>
                     {% endif %}
                 </div>
@@ -37,7 +37,7 @@
                 <div class="form-group">
                     <label>Permisos</label>
                     <div class="permissions-container">
-                        {% regroup form.permisos.field.queryset by content_type.app_label as permission_list %}
+                        {% regroup form.permissions.field.queryset by content_type.app_label as permission_list %}
                         {% for app in permission_list %}
                         <div class="permission-app">
                             <div class="permission-app-header">
@@ -48,22 +48,27 @@
                                 </button>
                             </div>
                             <div class="permission-items" id="perm-{{ app.grouper }}">
-                                {% for permiso in app.list %}
+                                {% for permission in app.list %}
                                 <div class="permission-item">
                                     <div class="form-check">
-                                        <input type="checkbox" name="permisos" value="{{ permiso.id }}"
-                                            id="perm-{{ permiso.id }}" {% if permiso in form.instance.permisos.all %}checked{% endif %} class="form-check-input">
-                                        <label for="perm-{{ permiso.id }}" class="form-check-label">
-                                            {{ permiso.codename|translate_permission }}
+                                        <input type="checkbox" name="permissions" value="{{ permission.id }}"
+                                            id="perm-{{ permission.id }}" {% if permission in form.instance.permissions.all %}checked{% endif %} class="form-check-input">
+                                        <label for="perm-{{ permission.id }}" class="form-check-label">
+                                            {{ permission.codename|translate_permission }}
                                         </label>
                                     </div>
-                                    <small class="text-muted">{{ permiso.content_type.model|translate_model_name|title }}</small>
+                                    <small class="text-muted">{{ permission.content_type.model|translate_model_name|title }}</small>
                                 </div>
                                 {% endfor %}
                             </div>
                         </div>
                         {% endfor %}
                     </div>
+                    {% if form.permissions.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.permissions.errors.as_text }}
+                    </div>
+                    {% endif %}
                 </div>
             </div>
 

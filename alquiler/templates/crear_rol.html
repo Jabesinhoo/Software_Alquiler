@@ -1,30 +1,30 @@
 {% extends "base.html" %}
 {% load static %}
 {% load permission_tags %}
-{% block title %}{% if form.instance.id %}Editar{% else %}Crear{% endif %} Rol{% endblock %}
+{% block title %}Crear Rol{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{% static 'css/crear_editar_roles.css' %}">
 {% endblock %}
 {% block page_title %}
-<i class="fas fa-user-tag fa-fw"></i> {% if form.instance.id %}Editar{% else %}Crear{% endif %} Rol
+<i class="fas fa-user-tag fa-fw"></i> Crear Rol
 {% endblock %}
 
 {% block content %}
 <div class="role-form-container">
     <div class="card corporate-card">
         <div class="card-header">
-            <h2 class="card-title">{% if form.instance.id %}Editar Rol{% else %}Nuevo Rol{% endif %}</h2>
+            <h2 class="card-title">Nuevo Rol</h2>
         </div>
 
         <form method="post">
             {% csrf_token %}
             <div class="card-body">
                 <div class="form-group">
-                    <label for="{{ form.nombre_rol.id_for_label }}">Nombre del Rol</label>
-                    {{ form.nombre_rol }}
-                    {% if form.nombre_rol.errors %}
+                    <label for="{{ form.name.id_for_label }}">Nombre del Rol</label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
                     <div class="invalid-feedback d-block">
-                        {{ form.nombre_rol.errors.as_text }}
+                        {{ form.name.errors.as_text }}
                     </div>
                     {% endif %}
                 </div>
@@ -32,12 +32,17 @@
                 <div class="form-group">
                     <label for="{{ form.descripcion.id_for_label }}">Descripción</label>
                     {{ form.descripcion }}
+                    {% if form.descripcion.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.descripcion.errors.as_text }}
+                    </div>
+                    {% endif %}
                 </div>
 
                 <div class="form-group">
                     <label>Permisos</label>
                     <div class="permissions-container">
-                        {% regroup form.permisos.field.queryset by content_type.app_label as permission_list %}
+                        {% regroup form.permissions.field.queryset by content_type.app_label as permission_list %}
                         {% for app in permission_list %}
                         <div class="permission-app">
                             <div class="permission-app-header">
@@ -48,22 +53,27 @@
                                 </button>
                             </div>
                             <div class="permission-items" id="perm-{{ app.grouper }}">
-                                {% for permiso in app.list %}
+                                {% for permission in app.list %}
                                 <div class="permission-item">
                                     <div class="form-check">
-                                        <input type="checkbox" name="permisos" value="{{ permiso.id }}"
-                                            id="perm-{{ permiso.id }}" {% if permiso in form.instance.permisos.all %}checked{% endif %} class="form-check-input">
-                                        <label for="perm-{{ permiso.id }}" class="form-check-label">
-                                            {{ permiso.codename|translate_permission }}
+                                        <input type="checkbox" name="permissions" value="{{ permission.id }}"
+                                            id="perm-{{ permission.id }}" class="form-check-input">
+                                        <label for="perm-{{ permission.id }}" class="form-check-label">
+                                            {{ permission.codename|translate_permission }}
                                         </label>
                                     </div>
-                                    <small class="text-muted">{{ permiso.content_type.model|translate_model_name|title }}</small>
+                                    <small class="text-muted">{{ permission.content_type.model|translate_model_name|title }}</small>
                                 </div>
                                 {% endfor %}
                             </div>
                         </div>
                         {% endfor %}
                     </div>
+                    {% if form.permissions.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.permissions.errors.as_text }}
+                    </div>
+                    {% endif %}
                 </div>
             </div>
 

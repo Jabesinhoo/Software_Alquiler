@@ -42,12 +42,12 @@ class ClienteAdmin(admin.ModelAdmin):
 
 # ========================
 # Registro de Roles
-# ========================
 @admin.register(Rol)
 class RolAdmin(admin.ModelAdmin):
-    list_display = ("nombre_rol", "descripcion")
-    search_fields = ("nombre_rol",)
-    filter_horizontal = ("permisos",)
+    list_display = ("name", "descripcion")
+    search_fields = ("name",)
+    filter_horizontal = ("permissions",)
+
 
 
 # ========================

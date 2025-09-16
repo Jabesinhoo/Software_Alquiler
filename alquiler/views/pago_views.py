@@ -116,7 +116,6 @@ def reportes_pagos(request):
 
     return render(request, 'reportes_pagos.html', context)
 
-@login_required
 def calcular_metricas_pagos(pagos):
     """Calcula métricas principales de los pagos"""
     total_pagado = pagos.filter(estado_pago='pagado').aggregate(total=Sum('monto'))['total'] or 0
@@ -147,7 +146,7 @@ def calcular_metricas_pagos(pagos):
         'tasa_cumplimiento': round(tasa_cumplimiento, 2),
     }
 
-@login_required
+
 def obtener_datos_graficas(pagos, periodo, fecha_inicio, fecha_fin):
     """Obtiene datos para las gráficas según el período seleccionado"""
 
@@ -215,7 +214,6 @@ def obtener_datos_graficas(pagos, periodo, fecha_inicio, fecha_fin):
         }
     }
 
-@login_required
 def analizar_tendencias(pagos, fecha_inicio, fecha_fin):
     """Analiza tendencias de pagos comparando con períodos anteriores"""
 
@@ -257,7 +255,7 @@ def analizar_tendencias(pagos, fecha_inicio, fecha_fin):
         'variacion_cantidad': round(variacion_cantidad, 2),
     }
 
-@login_required
+
 def obtener_top_clientes(pagos):
     """Obtiene los clientes con más pagos/montos"""
     # Se agrega .distinct() si un cliente puede tener múltiples alquileres y quieres sumarlos una vez
@@ -273,7 +271,7 @@ def obtener_top_clientes(pagos):
 
     return top_clientes_list
 
-@login_required
+
 def exportar_csv_pagos(pagos, fecha_inicio, fecha_fin):
     """Exporta los pagos filtrados a CSV"""
     response = HttpResponse(content_type='text/csv')

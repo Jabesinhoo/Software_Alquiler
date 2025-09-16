@@ -108,7 +108,6 @@ def bloquear_cliente(request, id):
 @login_required
 @permission_required('alquiler.view_cliente', raise_exception=True)
 def clientes_morosos(request):
-    actualizar_morosidad_clientes()
 
     clientes = Cliente.objects.filter(moroso=True).prefetch_related(
         'alquileres__pagos'

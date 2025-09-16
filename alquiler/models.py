@@ -678,49 +678,22 @@ class Contrato(models.Model):
 
 
 
-class Rol(models.Model):
+class Rol(Group):
     uuid_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    nombre_rol = models.CharField(max_length=50, unique=True, verbose_name="Nombre del Rol")
     descripcion = models.TextField(blank=True, verbose_name="Descripción")
-    permisos = models.ManyToManyField(
-        Permission, 
-        blank=True,
-        verbose_name="Permisos",
-        related_name="roles"
-    )
-    grupo = models.OneToOneField(
-        Group, 
-        null=True, 
-        blank=True, 
-        on_delete=models.SET_NULL,
-        verbose_name="Grupo asociado"
-    )
-
+    
     class Meta:
         verbose_name = "Rol"
         verbose_name_plural = "Roles"
-        ordering = ['nombre_rol']
+        ordering = ['name']
 
     def __str__(self):
-        return self.nombre_rol
-
-    def save(self, *args, **kwargs):
-        if not self.grupo:
-            grupo, created = Group.objects.get_or_create(name=f"Rol_{self.nombre_rol}")
-            self.grupo = grupo
-        else:
-            self.grupo.name = f"Rol_{self.nombre_rol}"
-            self.grupo.save()
-        
-        super().save(*args, **kwargs)
-        
-        if self.grupo:
-            self.grupo.permissions.set(self.permisos.all())
+        return self.name
 
     def get_permissions_by_app(self):
         """Devuelve los permisos agrupados por aplicación"""
         return (
-            self.permisos.all()
+            self.permissions.all()
             .order_by('content_type__app_label', 'content_type__model', 'codename')
             .select_related('content_type')
         )
@@ -754,12 +727,24 @@ class Rol(models.Model):
     def get_app_labels(self):
         """Obtiene las apps distintas que tiene permisos este rol"""
         return (
-            self.permisos.all()
+            self.permissions.all()
             .values_list('content_type__app_label', flat=True)
             .distinct()
             .order_by('content_type__app_label')
         )
 
+    def clean(self):
+        """Validación personalizada"""
+        if not self.name:
+            raise ValidationError("El nombre del rol es obligatorio.")
+        
+        # Verificar que el nombre no exista (excluyendo este mismo objeto)
+        if self.pk:
+            if Rol.objects.filter(name=self.name).exclude(pk=self.pk).exists():
+                raise ValidationError("Ya existe un rol con este nombre.")
+        else:
+            if Rol.objects.filter(name=self.name).exists():
+                raise ValidationError("Ya existe un rol con este nombre.")
 
 class UsuarioManager(BaseUserManager):
     def _create_user(self, nombre_usuario, password, **extra_fields):
@@ -769,10 +754,10 @@ class UsuarioManager(BaseUserManager):
         
         # Asignación automática de rol cliente si no se especifica
         if 'rol' not in extra_fields:
-            extra_fields['rol'] = Rol.objects.get_or_create(
-                nombre_rol="cliente",
+            extra_fields['rol'], created = Rol.objects.get_or_create(
+                name="cliente",
                 defaults={'descripcion': 'Rol por defecto para clientes'}
-            )[0]
+            )
         
         user = self.model(nombre_usuario=nombre_usuario, **extra_fields)
         user.set_password(password)
@@ -791,15 +776,14 @@ class UsuarioManager(BaseUserManager):
         extra_fields.setdefault('is_superuser', True)
         
         # Asignar rol de administrador
-        extra_fields['rol'], _ = Rol.objects.get_or_create(
-            nombre_rol="administrador",
+        extra_fields['rol'], created = Rol.objects.get_or_create(
+            name="administrador",
             defaults={
                 'descripcion': 'Administrador del sistema con todos los permisos',
             }
         )
         
         return self._create_user(nombre_usuario, password, **extra_fields)
-
 
 class Usuario(AbstractBaseUser, PermissionsMixin):
     uuid_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
@@ -864,19 +848,21 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
 
     def save(self, *args, **kwargs):
         """Asigna automáticamente el rol de cliente si no tiene rol asignado"""
-        if not self.rol_id:
-            self.rol = Rol.objects.get_or_create(
-                nombre_rol="cliente",
-                defaults={'descripcion': 'Rol por defecto para clientes'}
-            )[0]
+        creating = self.pk is None
         
+        if not self.rol_id:
+            self.rol, created = Rol.objects.get_or_create(
+                name="cliente",
+                defaults={'descripcion': 'Rol por defecto para clientes'}
+            )
+        
+        # Guardar el usuario primero
         super().save(*args, **kwargs)
         
-        # Sincronizar grupos si cambió el rol
-        if hasattr(self, '_rol_changed') and self._rol_changed:
-            self.groups.clear()
-            if self.rol and self.rol.grupo:
-                self.groups.add(self.rol.grupo)
+        # Sincronizar grupos con el rol
+        self.groups.clear()
+        if self.rol:
+            self.groups.add(self.rol)
 
     @property
     def has_admin_access(self):
@@ -893,6 +879,19 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
         if hasattr(self, 'rol'):
             return self.rol.get_permission_summary()
         return {}
+
+    def clean(self):
+        """Validación personalizada"""
+        if not self.nombre_usuario:
+            raise ValidationError("El nombre de usuario es obligatorio.")
+        
+        # Verificar que el nombre de usuario no exista (excluyendo este mismo usuario)
+        if self.pk:
+            if Usuario.objects.filter(nombre_usuario=self.nombre_usuario).exclude(pk=self.pk).exists():
+                raise ValidationError("Ya existe un usuario con este nombre.")
+        else:
+            if Usuario.objects.filter(nombre_usuario=self.nombre_usuario).exists():
+                raise ValidationError("Ya existe un usuario con este nombre.")
 
 
 class UserAuditLog(models.Model):

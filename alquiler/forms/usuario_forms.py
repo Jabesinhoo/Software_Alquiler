@@ -47,7 +47,7 @@ class RegistroForm(forms.Form):
     
 class UsuarioEditForm(forms.ModelForm):
     rol = forms.ModelChoiceField(
-        queryset=Rol.objects.all().prefetch_related('permisos'),
+        queryset=Rol.objects.all().prefetch_related('permissions'),  # Cambiado de 'permisos' a 'permissions'
         label="Rol del usuario",
         required=True,
         widget=forms.Select(attrs={
@@ -59,24 +59,6 @@ class UsuarioEditForm(forms.ModelForm):
     class Meta:
         model = Usuario
         fields = ['nombre_usuario', 'rol', 'is_staff', 'is_active']
-        widgets = {
-            'nombre_usuario': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Nombre de usuario'
-            }),
-            'is_staff': forms.CheckboxInput(attrs={
-                'class': 'form-check-input toggle-switch-checkbox',
-                'data-toggle': 'toggle',
-                'data-on': 'Sí',
-                'data-off': 'No'
-            }),
-            'is_active': forms.CheckboxInput(attrs={
-                'class': 'form-check-input toggle-switch-checkbox',
-                'data-toggle': 'toggle',
-                'data-on': 'Activo',
-                'data-off': 'Inactivo'
-            }),
-        }
         labels = {
             'nombre_usuario': 'Nombre de usuario',
             'is_staff': 'Acceso administrativo',
@@ -125,15 +107,28 @@ class CambiarContrasenaForm(forms.Form):
         return cleaned_data
     
 class RolForm(forms.ModelForm):
-    permisos = forms.ModelMultipleChoiceField(
+    permissions = forms.ModelMultipleChoiceField(
         queryset=Permission.objects.all(),
         widget=forms.CheckboxSelectMultiple,
-        required=False
+        required=False,
+        label="Permisos"  # Añade esta línea
     )
     
     class Meta:
         model = Rol
-        fields = ['nombre_rol', 'descripcion', 'permisos']
+        fields = ['name', 'descripcion', 'permissions']  # Cambiado de 'nombre_rol' a 'name'
         widgets = {
-            'descripcion': forms.Textarea(attrs={'rows': 3}),
+            'name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Nombre del rol'
+            }),
+            'descripcion': forms.Textarea(attrs={
+                'rows': 3,
+                'class': 'form-control',
+                'placeholder': 'Descripción del rol'
+            }),
+        }
+        labels = {
+            'name': 'Nombre del Rol',
+            'descripcion': 'Descripción',
         }

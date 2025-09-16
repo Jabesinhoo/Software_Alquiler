@@ -196,11 +196,12 @@ def vista_inicio(request):
 @staff_member_required
 @permission_required('usuarios.view_rol', raise_exception=True)
 def lista_roles(request):
-    roles = Rol.objects.all().order_by('nombre_rol')
+    roles = Rol.objects.all().order_by('name')  # <-- usar name, no nombre_rol
     return render(request, 'lista_roles.html', {'roles': roles})
 
+
 @login_required
-@permission_required('usuarios.add_rol', raise_exception=True)  # 👈 Solo usuarios con ese rol pasan
+@permission_required('usuarios.add_rol', raise_exception=True)
 def crear_rol(request):
     if request.method == 'POST':
         form = RolForm(request.POST)
@@ -208,10 +209,16 @@ def crear_rol(request):
             form.save()
             messages.success(request, 'Rol creado exitosamente')
             return redirect('alquiler:lista_roles')
+        else:
+            # Mostrar errores del formulario
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
     else:
         form = RolForm()
     
     return render(request, 'crear_rol.html', {'form': form})
+    
 
 @login_required
 @permission_required('usuarios.change_rol', raise_exception=True)
@@ -221,12 +228,9 @@ def editar_rol(request, rol_uuid):
     if request.method == 'POST':
         form = RolForm(request.POST, instance=rol)
         if form.is_valid():
-            rol = form.save(commit=False)
-            rol.save()
-            form.save_m2m()
+            form.save()  # Ahora se guarda automáticamente todo
             messages.success(request, 'Rol actualizado exitosamente')
             return redirect('alquiler:lista_roles')
-
     else:
         form = RolForm(instance=rol)
 
@@ -307,12 +311,8 @@ def asignar_rol(request, usuario_uuid):
             usuario.rol = rol
             usuario.save()
             
-            # Actualizar grupo del usuario
-            usuario.groups.clear()
-            if rol.grupo:
-                usuario.groups.add(rol.grupo)
-            
-            messages.success(request, f'Rol "{rol.nombre_rol}" asignado correctamente a {usuario.nombre_usuario}')
+            # Los grupos se sincronizan automáticamente en el save()
+            messages.success(request, f'Rol "{rol.name}" asignado correctamente a {usuario.nombre_usuario}')
             return redirect('alquiler:editar_usuario', usuario_uuid=usuario.uuid_id)
     return render(request, 'asignar_rol.html', {
         'usuario': usuario,
