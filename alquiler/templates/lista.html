@@ -14,50 +14,63 @@
             <i class="fas fa-laptop-code me-2"></i>Listado de Equipos
         </h1>
 
-        {% if request.user.is_staff %}
+        {% if perms.alquiler.add_equipo %}
         <a href="{% url 'alquiler:crear_equipo' %}" class="btn btn-primary">
             <i class="fas fa-plus-circle me-2"></i>Agregar nuevo equipo
         </a>
         {% endif %}
+
     </div>
 
     <div class="mb-4 mt-5">
+        
         <div class="d-flex flex-wrap justify-content-start align-items-center gap-3 mt-5 filtro-botones mt-5">
-            {% if request.user.is_staff %}
-            <button type="button" class="btn btn-sm btn-outline-secondary"
-                onclick="window.location.href='{% url 'alquiler:listar_equipos' %}'">
-                <i class="fas fa-list-ol me-1"></i>Todos
-            </button>
-            {% endif %}
-            <button type="button" class="btn btn-sm btn-outline-success"
-                onclick="window.location.href='{% url 'alquiler:equipos_por_estado' 'disponible' %}'">
-                <i class="fas fa-check-circle me-1"></i>Disponibles
-            </button>
-            {% if request.user.is_staff %}
-            <button type="button" class="btn btn-sm btn-outline-danger"
-                onclick="window.location.href='{% url 'alquiler:equipos_por_estado' 'alquilado' %}'">
-                <i class="fas fa-handshake me-1"></i>Alquilados
-            </button>
-            {% endif %}
-            {% if request.user.is_staff %}
-            <button type="button" class="btn btn-sm btn-outline-warning"
-                onclick="window.location.href='{% url 'alquiler:equipos_por_estado' 'reservado' %}'">
-                <i class="fas fa-calendar-check me-1"></i>Reservados
-            </button>
-            {% endif %}
-            {% if request.user.is_staff %}
-            <button type="button" class="btn btn-sm btn-outline-info"
-                onclick="window.location.href='{% url 'alquiler:equipos_por_estado' 'mantenimiento' %}'">
-                <i class="fas fa-tools me-1"></i>Mantenimiento
-            </button>
-            {% endif %}
-            {% if request.user.is_staff %}
-            <button type="button" class="btn btn-sm btn-outline-info"
-                onclick="window.location.href='{% url 'alquiler:equipos_mas_alquilados' %}'">
-                <i class="fas fa-chart-line me-1"></i>Más Alquilados
-            </button>
-            {% endif %}
-        </div>
+
+    {% if perms.alquiler.view_equipo %}
+        <button type="button" class="btn btn-sm btn-outline-secondary"
+            onclick="window.location.href='{% url 'alquiler:listar_equipos' %}'">
+            <i class="fas fa-list-ol me-1"></i>Todos
+        </button>
+    {% endif %}
+
+    {% if perms.alquiler.view_equipo %}
+        <button type="button" class="btn btn-sm btn-outline-success"
+            onclick="window.location.href='{% url 'alquiler:equipos_por_estado' 'disponible' %}'">
+            <i class="fas fa-check-circle me-1"></i>Disponibles
+        </button>
+    {% endif %}
+
+    {% if perms.alquiler.view_equipo %}
+        <button type="button" class="btn btn-sm btn-outline-danger"
+            onclick="window.location.href='{% url 'alquiler:equipos_por_estado' 'alquilado' %}'">
+            <i class="fas fa-handshake me-1"></i>Alquilados
+        </button>
+    {% endif %}
+
+    {% if perms.alquiler.view_equipo %}
+        <button type="button" class="btn btn-sm btn-outline-warning"
+            onclick="window.location.href='{% url 'alquiler:equipos_por_estado' 'reservado' %}'">
+            <i class="fas fa-calendar-check me-1"></i>Reservados
+        </button>
+    {% endif %}
+
+    {% if perms.alquiler.view_equipo %}
+        <button type="button" class="btn btn-sm btn-outline-info"
+            onclick="window.location.href='{% url 'alquiler:equipos_por_estado' 'mantenimiento' %}'">
+            <i class="fas fa-tools me-1"></i>Mantenimiento
+        </button>
+    {% endif %}
+
+    {% if perms.alquiler.view_equipo or perms.alquiler.export_reports %}
+        <button type="button" class="btn btn-sm btn-outline-info"
+            onclick="window.location.href='{% url 'alquiler:equipos_mas_alquilados' %}'">
+            <i class="fas fa-chart-line me-1"></i>Más Alquilados
+        </button>
+    {% endif %}
+
+</div>
+
+    
     </div>
 
 

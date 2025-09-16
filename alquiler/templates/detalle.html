@@ -20,7 +20,7 @@
                 </div>
             </div>
             <div class="img-container-wrapper">
-                {% if user.is_staff %}
+                {% if perms.alquiler.change_equipo %}                
                 <div class="edit-btn-top-right">
                     <a href="{% url 'alquiler:editar_equipo' equipo.uuid_id %}" class="btn btn-warning">
                         <i class="fas fa-edit me-2"></i>Editar Equipo
@@ -123,7 +123,7 @@
                                         class="btn btn-sm btn-outline-primary" title="Ver detalle">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    {% if user.is_staff %}
+                                    {% if perms.alquiler.change_equipo %}
                                     <a href="{% url 'alquiler:editar_alquiler' alquiler.uuid_id %}"
                                         class="btn btn-sm btn-outline-warning" title="Editar">
                                         <i class="fas fa-edit"></i>

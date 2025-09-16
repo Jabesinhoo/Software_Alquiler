@@ -56,15 +56,11 @@ def listar_equipos(request):
 @login_required
 @permission_required('alquiler.add_equipo', raise_exception=True)
 def crear_equipo(request):
-    if not request.user.is_staff:
-        messages.error(request, 'No tienes permiso para realizar esta acción.')
-        return redirect('alquiler:listar_equipos')
-
     if request.method == 'POST':
         form = EquipoForm(request.POST, request.FILES)
         if form.is_valid():
             try:
-                equipo = form.save()  # Guarda el equipo y las fotos
+                equipo = form.save()
 
                 # Crear instancias de UnidadEquipo a partir del campo "seriales"
                 seriales = request.POST.get('seriales', '')
@@ -78,7 +74,6 @@ def crear_equipo(request):
 
             except Exception as e:
                 messages.error(request, f'Error al guardar el equipo: {str(e)}')
-                print(f"[DEBUG] Error al guardar equipo: {str(e)}")
         else:
             print("[DEBUG] Formulario inválido:", form.errors)
     else:
@@ -90,15 +85,10 @@ def crear_equipo(request):
     })
 
 
-
 @login_required
 @permission_required('alquiler.change_equipo', raise_exception=True)
 def editar_equipo(request, id):
     equipo = get_object_or_404(Equipo, uuid_id=id)
-
-    if not request.user.is_staff:
-        messages.error(request, 'No tienes permiso para editar equipos.')
-        return redirect('alquiler:detalle_equipo', pk=equipo.pk)
 
     FotoEquipoFormSet = inlineformset_factory(
         Equipo,
@@ -114,40 +104,25 @@ def editar_equipo(request, id):
 
         if form.is_valid() and formset.is_valid():
             try:
-                # Verificar que habrá al menos una foto después de las operaciones
+                # Verificar que haya al menos una foto final
                 fotos_existentes = equipo.fotos.all()
                 fotos_a_eliminar = []
-                
-                # Contar fotos que se van a eliminar
                 for form_foto in formset.forms:
-                    if form_foto.cleaned_data.get('DELETE'):
-                        if form_foto.instance.pk:
-                            fotos_a_eliminar.append(form_foto.instance.pk)
-                
-                # Contar fotos que quedarán después de eliminar
+                    if form_foto.cleaned_data.get('DELETE') and form_foto.instance.pk:
+                        fotos_a_eliminar.append(form_foto.instance.pk)
+
                 fotos_restantes = fotos_existentes.exclude(pk__in=fotos_a_eliminar).count()
-                
-                # Contar nuevas fotos que se están agregando
                 nuevas_fotos_formset = sum(1 for form_foto in formset.forms 
-                                        if form_foto.cleaned_data.get('foto') and not form_foto.cleaned_data.get('DELETE'))
-                
-                # Contar fotos adicionales desde el input múltiple
+                                           if form_foto.cleaned_data.get('foto') and not form_foto.cleaned_data.get('DELETE'))
                 nuevas_fotos_adicionales = len(request.FILES.getlist('nuevas_fotos[]'))
-                
+
                 total_fotos_finales = fotos_restantes + nuevas_fotos_formset + nuevas_fotos_adicionales
-                
                 if total_fotos_finales == 0:
                     form.add_error(None, "El equipo debe tener al menos una foto.")
-                    print("[DEBUG] No hay fotos suficientes:", {
-                        'fotos_restantes': fotos_restantes,
-                        'nuevas_fotos_formset': nuevas_fotos_formset,
-                        'nuevas_fotos_adicionales': nuevas_fotos_adicionales
-                    })
                 else:
-                    # Guardar el equipo y las fotos
                     equipo = form.save()
                     formset.save()
-                    
+
                     # Procesar fotos adicionales
                     nuevas_fotos = request.FILES.getlist('nuevas_fotos[]')
                     for foto in nuevas_fotos:
@@ -158,7 +133,7 @@ def editar_equipo(request, id):
                             descripcion=f"Foto del equipo {equipo.marca} {equipo.modelo}"
                         )
 
-                    # Validar que haya al menos una principal
+                    # Validar foto principal
                     fotos_principales = equipo.fotos.filter(es_principal=True)
                     if fotos_principales.count() > 1:
                         ultima = fotos_principales.order_by('-id').first()
@@ -173,9 +148,7 @@ def editar_equipo(request, id):
 
             except Exception as e:
                 messages.error(request, f'Error al guardar los cambios: {str(e)}')
-                print(f"[ERROR] Guardando equipo: {str(e)}")
-
-        if not (form.is_valid() and formset.is_valid()):
+        else:
             print("[DEBUG] Errores form:", form.errors)
             print("[DEBUG] Errores formset:", formset.errors)
 
@@ -191,21 +164,17 @@ def editar_equipo(request, id):
     })
 
 
+@login_required
 @permission_required('alquiler.delete_equipo', raise_exception=True)
 @require_POST
-@login_required
-@user_passes_test(lambda u: u.is_staff)
 def eliminar_equipo(request, pk):
     equipo = get_object_or_404(Equipo, uuid_id=pk)
-    
     try:
-        # Eliminar también las fotos asociadas
         equipo.fotos.all().delete()
         equipo.delete()
         messages.success(request, f'El equipo {equipo.marca} {equipo.modelo} ha sido eliminado correctamente.')
     except Exception as e:
         messages.error(request, f'Error al eliminar el equipo: {str(e)}')
-    
     return redirect('alquiler:listar_equipos')
 
 
