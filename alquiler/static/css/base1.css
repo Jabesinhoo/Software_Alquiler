@@ -747,6 +747,13 @@ body:not(.dark-mode) .menu-toggle {
     }
 }
 
+@supports (-webkit-touch-callout: none) {
+    .sidebar {
+        height: -webkit-fill-available; /* Ajusta la altura real en iOS */
+    }
+}
+
+
 @media (max-width: 768px) {
     .sidebar {
         width: 280px;
