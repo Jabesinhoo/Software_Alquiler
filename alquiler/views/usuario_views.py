@@ -218,7 +218,7 @@ def crear_rol(request):
         form = RolForm()
     
     return render(request, 'crear_rol.html', {'form': form})
-    
+
 
 @login_required
 @permission_required('usuarios.change_rol', raise_exception=True)
@@ -390,16 +390,16 @@ def editar_usuario(request, usuario_uuid):
     else:
         form = UsuarioEditForm(instance=usuario)
     
-    # Precargar datos de roles para el template
-    roles_data = {
-        rol.id: {
-            'nombre': rol.nombre_rol,
+
+        roles_data = {
+            rol.id: {
+            'nombre': rol.name,  # ahora usas `name`, no `nombre_rol`
             'descripcion': rol.descripcion,
-            'permisos': [perm.name for perm in rol.permisos.all()]
+            'permisos': [perm.name for perm in rol.permissions.all()]
         }
-        for rol in Rol.objects.all().prefetch_related('permisos')
+        for rol in Rol.objects.all().prefetch_related('permissions')
     }
-    
+
     return render(request, 'editar_usuario.html', {
         'form': form,
         'usuario': usuario,

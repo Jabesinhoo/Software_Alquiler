@@ -47,7 +47,7 @@ class RegistroForm(forms.Form):
     
 class UsuarioEditForm(forms.ModelForm):
     rol = forms.ModelChoiceField(
-        queryset=Rol.objects.all().prefetch_related('permissions'),  # Cambiado de 'permisos' a 'permissions'
+        queryset=Rol.objects.all().prefetch_related('permissions'),
         label="Rol del usuario",
         required=True,
         widget=forms.Select(attrs={
@@ -68,10 +68,11 @@ class UsuarioEditForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance.pk:
-            # Cargar los permisos del rol actual para el JS
+            # ✅ cambiar permisos -> permissions
             self.fields['rol'].widget.attrs['data-current-permissions'] = [
-                perm.codename for perm in self.instance.rol.permisos.all()
+                perm.codename for perm in self.instance.rol.permissions.all()
             ] if self.instance.rol else []
+
 
 class CambiarContrasenaForm(forms.Form):
     nueva_contrasena = forms.CharField(

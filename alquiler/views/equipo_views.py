@@ -90,6 +90,7 @@ def crear_equipo(request):
     })
 
 
+
 @login_required
 @permission_required('alquiler.change_equipo', raise_exception=True)
 def editar_equipo(request, id):
