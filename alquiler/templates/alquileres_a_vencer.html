@@ -67,8 +67,7 @@
             </table>
         </div>
         
-        {% if alquileres %}
-        <div class="alquileres-vencer-actions">
+        {% if perms.alquiler.send_notifications %}
             <button type="submit" class="btn btn-secondary">
                 <i class="fas fa-paper-plane me-2"></i> Enviar
             </button>

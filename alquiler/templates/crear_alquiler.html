@@ -5,53 +5,68 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h2 class="mb-4"><i class="fas fa-cart-plus"></i> Crear Nuevo Alquiler</h2>
+    <h1 class="mb-4">
+        <i class="fas fa-cart-plus me-2"></i> Crear Nuevo Alquiler
+    </h1>
+
     {% if cliente_moroso %}
-    <div class="alert alert-danger">
-        <i class="fas fa-exclamation-triangle"></i>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>
         <strong>Advertencia:</strong> Este cliente está marcado como moroso.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
     </div>
     {% endif %}
+
     <form method="post" id="alquiler-form" class="needs-validation" novalidate>
         {% csrf_token %}
         {{ formset.management_form }}
 
         <!-- Información Principal -->
-        <div class="card mb-4">
+        <div class="card mb-4 shadow-sm">
             <div class="card-header bg-primary text-white">
-                <i class="fas fa-info-circle"></i> Información Principal
+                <i class="fas fa-info-circle me-2"></i> Información Principal
             </div>
             <div class="card-body">
-                <div class="row row-cols-1 row-cols-md-2 g-3">
-                    <div class="col">
-                        <label for="{{ form.cliente.id_for_label }}" class="form-label"><i class="fas fa-user"></i> Cliente</label>
-                            {{ form.cliente }}    
-                    <div class="invalid-feedback">Por favor seleccione un cliente.</div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.cliente.id_for_label }}" class="form-label">
+                            <i class="fas fa-user me-2"></i> Cliente
+                        </label>
+                        {{ form.cliente }}
+                        <div class="invalid-feedback">Por favor seleccione un cliente.</div>
                     </div>
-                    <div class="col">
-                        <label for="{{ form.numero_factura.id_for_label }}" class="form-label"><i class="fas fa-file-invoice"></i> Número de Factura</label>
+                    <div class="col-md-6">
+                        <label for="{{ form.numero_factura.id_for_label }}" class="form-label">
+                            <i class="fas fa-file-invoice me-2"></i> Número de Factura
+                        </label>
                         {{ form.numero_factura }}
                         <div class="invalid-feedback">Por favor ingrese un número de factura.</div>
                     </div>
                 </div>
 
-                <div class="row row-cols-1 row-cols-md-3 g-3 mt-3">
-                    <div class="col">
-                        <label for="{{ form.fecha_inicio.id_for_label }}" class="form-label"><i class="fas fa-calendar-alt"></i> Fecha Inicio</label>
+                <div class="row g-3 mt-2">
+                    <div class="col-md-4">
+                        <label for="{{ form.fecha_inicio.id_for_label }}" class="form-label">
+                            <i class="fas fa-calendar-alt me-2"></i> Fecha Inicio
+                        </label>
                         <input type="date" class="form-control" id="{{ form.fecha_inicio.id_for_label }}"
                                name="{{ form.fecha_inicio.html_name }}"
                                value="{{ form.fecha_inicio.value|default:''|date:'Y-m-d' }}">
                         <div class="invalid-feedback">Por favor ingrese una fecha de inicio válida.</div>
                     </div>
-                    <div class="col">
-                        <label for="{{ form.fecha_fin.id_for_label }}" class="form-label"><i class="fas fa-calendar-alt"></i> Fecha Fin</label>
+                    <div class="col-md-4">
+                        <label for="{{ form.fecha_fin.id_for_label }}" class="form-label">
+                            <i class="fas fa-calendar-alt me-2"></i> Fecha Fin
+                        </label>
                         <input type="date" class="form-control" id="{{ form.fecha_fin.id_for_label }}"
                                name="{{ form.fecha_fin.html_name }}"
                                value="{{ form.fecha_fin.value|default:''|date:'Y-m-d' }}">
                         <div class="invalid-feedback">Por favor ingrese una fecha de fin válida.</div>
                     </div>
-                    <div class="col">
-                        <label class="form-label"><i class="fas fa-clock"></i> Duración</label>
+                    <div class="col-md-4">
+                        <label class="form-label">
+                            <i class="fas fa-clock me-2"></i> Duración
+                        </label>
                         <input type="text" class="form-control" id="duracion-alquiler" readonly>
                     </div>
                 </div>
@@ -59,18 +74,19 @@
         </div>
 
         <!-- Equipos a Alquilar -->
-        <div class="card mb-4">
+        <div class="card mb-4 shadow-sm">
             <div class="card-header bg-primary text-white">
-                <i class="fas fa-laptop"></i> Equipos a Alquilar
+                <i class="fas fa-laptop me-2"></i> Equipos a Alquilar
             </div>
             <div class="card-body">
-                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-3 mb-3">
-                    <div class="col">
-                        <label class="form-label"><i class="fas fa-desktop"></i> Equipo</label>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-3">
+                        <label class="form-label"><i class="fas fa-desktop me-2"></i> Equipo</label>
                         <select class="form-control select2" id="equipo-selector">
                             <option value="">Seleccione un equipo...</option>
                             {% for equipo in equipos_disponibles %}
-                            <option value="{{ equipo.uuid_id }}" data-precio-dia="{{ equipo.precio_dia|default:0 }}"
+                            <option value="{{ equipo.uuid_id }}" 
+                                    data-precio-dia="{{ equipo.precio_dia|default:0 }}"
                                     data-precio-semana="{{ equipo.precio_semana|default:0 }}"
                                     data-precio-mes="{{ equipo.precio_mes|default:0 }}"
                                     data-precio-trimestre="{{ equipo.precio_trimestre|default:0 }}"
@@ -82,8 +98,8 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="col">
-                        <label class="form-label"><i class="fas fa-calendar-week"></i> Periodo de Alquiler</label>
+                    <div class="col-md-3">
+                        <label class="form-label"><i class="fas fa-calendar-week me-2"></i> Periodo</label>
                         <select class="form-control" id="periodo-selector">
                             <option value="dia">Por día</option>
                             <option value="semana">Por semana</option>
@@ -93,31 +109,31 @@
                             <option value="anio">Por año</option>
                         </select>
                     </div>
-                    <div class="col">
-                        <label class="form-label"><i class="fas fa-barcode"></i> Números de Serie</label>
+                    <div class="col-md-4">
+                        <label class="form-label"><i class="fas fa-barcode me-2"></i> Números de Serie</label>
                         <select class="form-control select2" id="serie-selector" multiple></select>
-                        <small id="sinSerieHelp" class="form-text text-muted" style="display: none;">
+                        <small id="sinSerieHelp" class="form-text text-muted d-none">
                             Este equipo no requiere número de serie
                         </small>
                     </div>
-                    <div class="col d-flex align-items-end">
-                        <button type="button" id="agregar-equipo" class="btn btn-primary w-100">
-                            <i class="fas fa-plus"></i> Agregar
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="button" id="agregar-equipo" class="btn btn-primary w-100" aria-label="Agregar equipo al alquiler">
+                            <i class="fas fa-plus me-2"></i> Agregar
                         </button>
                     </div>
                 </div>
 
                 <div class="table-responsive">
-                    <table class="table table-bordered" id="tabla-equipos">
+                    <table class="table table-bordered table-hover align-middle" id="tabla-equipos">
                         <thead class="table-dark">
                             <tr>
-                                <th><i class="fas fa-desktop"></i> Equipo</th>
-                                <th><i class="fas fa-barcode"></i> Seriales</th>
-                                <th><i class="fas fa-calendar-week"></i> Periodo</th>
-                                <th><i class="fas fa-dollar-sign"></i> Precio Unitario</th>
-                                <th><i class="fas fa-dollar-sign"></i> Total</th>
-                                <th><i class="fas fa-percent"></i> IVA</th>
-                                <th><i class="fas fa-times"></i> Acciones</th>
+                                <th>Equipo</th>
+                                <th>Seriales</th>
+                                <th>Periodo</th>
+                                <th>Precio Unitario</th>
+                                <th>Total</th>
+                                <th>IVA</th>
+                                <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -129,33 +145,37 @@
         </div>
 
         <!-- Información Adicional -->
-        <div class="card mb-4">
+        <div class="card mb-4 shadow-sm">
             <div class="card-header bg-primary text-white">
-                <i class="fas fa-comment-alt"></i> Información Adicional
+                <i class="fas fa-comment-alt me-2"></i> Información Adicional
             </div>
             <div class="card-body">
                 <div class="mb-3">
-                    <label for="{{ form.observaciones.id_for_label }}" class="form-label"><i class="fas fa-sticky-note"></i> Observaciones</label>
+                    <label for="{{ form.observaciones.id_for_label }}" class="form-label">
+                        <i class="fas fa-sticky-note me-2"></i> Observaciones
+                    </label>
                     {{ form.observaciones }}
                 </div>
-                <div class="row row-cols-1 row-cols-md-3 g-3">
-                    <div class="col">
-                        <label for="{{ form.aprobado_por.id_for_label }}" class="form-label"><i class="fas fa-user-check"></i> Aprobado por</label>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="{{ form.aprobado_por.id_for_label }}" class="form-label">
+                            <i class="fas fa-user-check me-2"></i> Aprobado por
+                        </label>
                         {{ form.aprobado_por }}
                     </div>
-                    <div class="col">
+                    <div class="col-md-4">
                         <div class="form-check form-switch pt-4">
                             {{ form.contrato_firmado }}
                             <label for="{{ form.contrato_firmado.id_for_label }}" class="form-check-label">
-                                <i class="fas fa-file-signature"></i> Contrato Firmado
+                                <i class="fas fa-file-signature me-2"></i> Contrato Firmado
                             </label>
                         </div>
                     </div>
-                    <div class="col">
+                    <div class="col-md-4">
                         <div class="form-check form-switch pt-4">
                             {{ form.renovacion }}
                             <label for="{{ form.renovacion.id_for_label }}" class="form-check-label">
-                                <i class="fas fa-sync-alt"></i> Renovación
+                                <i class="fas fa-sync-alt me-2"></i> Renovación
                             </label>
                         </div>
                     </div>
@@ -163,28 +183,28 @@
             </div>
         </div>
 
-        <!-- Resumen del Alquiler -->
-        <div class="card mb-4">
+        <!-- Resumen -->
+        <div class="card mb-4 shadow-sm">
             <div class="card-header bg-success text-white">
-                <i class="fas fa-receipt"></i> Resumen del Alquiler
+                <i class="fas fa-receipt me-2"></i> Resumen del Alquiler
             </div>
             <div class="card-body">
-                <div class="row row-cols-1 row-cols-md-2 g-3">
-                    <div class="col">
-                        <h5><i class="fas fa-list"></i> Detalle de Costos</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-list me-2"></i> Detalle de Costos</h5>
                         <ul class="list-group mb-3" id="resumen-costos"></ul>
                     </div>
-                    <div class="col">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="col-md-6">
+                        <div class="d-flex justify-content-between mb-2">
                             <span class="fw-bold">Subtotal:</span>
                             <span id="subtotal">$0.00</span>
                         </div>
-                        <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="d-flex justify-content-between mb-2">
                             <span class="fw-bold">Impuestos (19%):</span>
                             <span id="impuestos">$0.00</span>
                         </div>
                         <hr>
-                        <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex justify-content-between">
                             <h5 class="fw-bold">Total:</h5>
                             <h5 id="total">$0.00</h5>
                         </div>
@@ -193,19 +213,20 @@
             </div>
         </div>
 
+        <!-- Botones -->
         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
             <a href="{% url 'alquiler:listar_alquileres' %}" class="btn btn-secondary me-md-2">
-                <i class="fas fa-arrow-left"></i> Cancelar
+                <i class="fas fa-arrow-left me-2"></i> Cancelar
             </a>
-            <button type="submit" class="btn btn-primary">
-                <i class="fas fa-save"></i> Guardar Alquiler
+            <button type="submit" class="btn btn-primary" aria-label="Guardar nuevo alquiler">
+                <i class="fas fa-save me-2"></i> Guardar Alquiler
             </button>
         </div>
     </form>
 </div>
 
 <!-- Formulario oculto -->
-<div id="empty-form" style="display: none;">
+<div id="empty-form" class="d-none">
     {% for field in formset.empty_form %}
     <input type="hidden" name="{{ field.html_name }}" id="{{ field.id_for_label }}" value="">
     {% endfor %}
@@ -214,8 +235,6 @@
 <script>
     window.SERIES_DISPONIBLES_URL = "{% url 'alquiler:series_disponibles' equipo_id='00000000-0000-0000-0000-000000000000' %}".replace('00000000-0000-0000-0000-000000000000', '{equipoId}');
 </script>
-
-
 {% endblock %}
 
 {% block extra_css %}

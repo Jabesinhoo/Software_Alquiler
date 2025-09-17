@@ -9,26 +9,28 @@
 
 {% block content %}
 <div class="calendario-container">
-    <div class="calendar-header">
-        <h2>
-            <i class="fas fa-calendar-alt"></i>
+    <div class="calendar-header d-flex justify-content-between align-items-center">
+        <h1 class="mb-0">
+            <i class="fas fa-calendar-alt me-2"></i>
             Calendario Anual de Alquileres
-        </h2>
+        </h1>
         
-        <div class="navegacion-anios">
-            <button id="anioAnterior">
+        <nav class="navegacion-anios d-flex align-items-center">
+            <button id="anioAnterior" class="btn btn-outline-secondary btn-sm me-2" aria-label="Año anterior">
                 <i class="fas fa-chevron-left"></i>
             </button>
-            <span id="anioActual" class="anio-display">{{ current_year }}</span>
-            <button id="anioSiguiente">
+            <span id="anioActual" class="anio-display fw-bold">{{ current_year }}</span>
+            <button id="anioSiguiente" class="btn btn-outline-secondary btn-sm ms-2" aria-label="Año siguiente">
                 <i class="fas fa-chevron-right"></i>
             </button>
-        </div>
+        </nav>
     </div>
 
-    <div id="calendarioContainer" class="calendario-grid"></div>
+    <div id="calendarioContainer" class="calendario-grid mt-4"></div>
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
     const eventos = {{ eventos_json|safe }};
     const esSuperusuario = {{ es_superusuario|yesno:"true,false" }};

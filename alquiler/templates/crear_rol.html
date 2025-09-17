@@ -1,26 +1,34 @@
 {% extends "base.html" %}
 {% load static %}
 {% load permission_tags %}
+
 {% block title %}Crear Rol{% endblock %}
+
 {% block styles %}
 <link rel="stylesheet" href="{% static 'css/crear_editar_roles.css' %}">
 {% endblock %}
+
 {% block page_title %}
 <i class="fas fa-user-tag fa-fw"></i> Crear Rol
 {% endblock %}
 
 {% block content %}
 <div class="role-form-container">
-    <div class="card corporate-card">
-        <div class="card-header">
-            <h2 class="card-title">Nuevo Rol</h2>
+    <div class="card corporate-card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h2 class="card-title mb-0">
+                <i class="fas fa-plus-circle me-2"></i> Nuevo Rol
+            </h2>
         </div>
 
         <form method="post">
             {% csrf_token %}
             <div class="card-body">
-                <div class="form-group">
-                    <label for="{{ form.name.id_for_label }}">Nombre del Rol</label>
+                <!-- Nombre -->
+                <div class="form-group mb-3">
+                    <label for="{{ form.name.id_for_label }}" class="form-label fw-bold">
+                        Nombre del Rol
+                    </label>
                     {{ form.name }}
                     {% if form.name.errors %}
                     <div class="invalid-feedback d-block">
@@ -29,8 +37,11 @@
                     {% endif %}
                 </div>
 
-                <div class="form-group">
-                    <label for="{{ form.descripcion.id_for_label }}">Descripción</label>
+                <!-- Descripción -->
+                <div class="form-group mb-3">
+                    <label for="{{ form.descripcion.id_for_label }}" class="form-label fw-bold">
+                        Descripción
+                    </label>
                     {{ form.descripcion }}
                     {% if form.descripcion.errors %}
                     <div class="invalid-feedback d-block">
@@ -39,22 +50,24 @@
                     {% endif %}
                 </div>
 
+                <!-- Permisos -->
                 <div class="form-group">
-                    <label>Permisos</label>
-                    <div class="permissions-container">
+                    <label class="form-label fw-bold">Permisos</label>
+                    <div class="permissions-container mt-2">
                         {% regroup form.permissions.field.queryset by content_type.app_label as permission_list %}
                         {% for app in permission_list %}
-                        <div class="permission-app">
-                            <div class="permission-app-header">
-                                <h5>{{ app.grouper|translate_app_label|title }}</h5>
-                                <button type="button" class="btn-toggle-permissions"
-                                    data-target="perm-{{ app.grouper }}">
-                                    <i class="fas fa-chevron-down"></i>
+                        <div class="permission-app border rounded shadow-sm mb-3">
+                            <div class="permission-app-header d-flex justify-content-between align-items-center p-2 bg-light">
+                                <h5 class="mb-0">{{ app.grouper|translate_app_label|title }}</h5>
+                                <button type="button" class="btn btn-sm btn-outline-secondary btn-toggle-permissions"
+                                    data-bs-toggle="collapse" data-bs-target="#perm-{{ app.grouper }}"
+                                    aria-expanded="false" aria-controls="perm-{{ app.grouper }}">
+                                    <i class="fas fa-chevron-right"></i>
                                 </button>
                             </div>
-                            <div class="permission-items" id="perm-{{ app.grouper }}">
+                            <div class="collapse permission-items p-3" id="perm-{{ app.grouper }}">
                                 {% for permission in app.list %}
-                                <div class="permission-item">
+                                <div class="permission-item mb-2">
                                     <div class="form-check">
                                         <input type="checkbox" name="permissions" value="{{ permission.id }}"
                                             id="perm-{{ permission.id }}" class="form-check-input">
@@ -62,7 +75,9 @@
                                             {{ permission.codename|translate_permission }}
                                         </label>
                                     </div>
-                                    <small class="text-muted">{{ permission.content_type.model|translate_model_name|title }}</small>
+                                    <small class="text-muted">
+                                        {{ permission.content_type.model|translate_model_name|title }}
+                                    </small>
                                 </div>
                                 {% endfor %}
                             </div>
@@ -77,13 +92,13 @@
                 </div>
             </div>
 
-            <div class="card-footer">
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save"></i> Guardar
-                </button>
+            <div class="card-footer d-flex justify-content-between">
                 <a href="{% url 'alquiler:lista_roles' %}" class="btn btn-secondary">
-                    <i class="fas fa-times"></i> Cancelar
+                    <i class="fas fa-times me-2"></i> Cancelar
                 </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-2"></i> Guardar
+                </button>
             </div>
         </form>
     </div>
@@ -93,31 +108,17 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Ocultar todos los permisos al cargar (excepto el primero si quieres)
-    document.querySelectorAll('.permission-items').forEach((container, index) => {
-        if (index !== 0) {  // Mantener el primero abierto
-            container.style.display = 'none';
-            const icon = container.previousElementSibling.querySelector('i');
-            icon.classList.remove('fa-chevron-down');
-            icon.classList.add('fa-chevron-right');
-        }
-    });
-
-    // Toggle para mostrar/ocultar permisos por app
+    // Cambiar iconos al expandir/colapsar
     document.querySelectorAll('.btn-toggle-permissions').forEach(btn => {
         btn.addEventListener('click', function() {
-            const target = this.getAttribute('data-target');
-            const container = document.getElementById(target);
             const icon = this.querySelector('i');
-            
-            if (container.style.display === 'none') {
-                container.style.display = 'grid';
-                icon.classList.remove('fa-chevron-right');
-                icon.classList.add('fa-chevron-down');
-            } else {
-                container.style.display = 'none';
+            const expanded = this.getAttribute('aria-expanded') === 'true';
+            if (expanded) {
                 icon.classList.remove('fa-chevron-down');
                 icon.classList.add('fa-chevron-right');
+            } else {
+                icon.classList.remove('fa-chevron-right');
+                icon.classList.add('fa-chevron-down');
             }
         });
     });

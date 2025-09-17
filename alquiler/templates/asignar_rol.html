@@ -62,10 +62,11 @@
                         {% if usuario.rol %}
                         <div class="permissions-list">
                             {% for permiso in usuario.rol.permisos.all %}
-                            <span class="badge badge-secondary">{{ permiso.name }}</span>
+                                <span class="badge badge-secondary">{{ permiso.name }}</span>
                             {% empty %}
-                            <p class="text-muted">Este rol no tiene permisos asignados</p>
+                                <p class="text-muted">Este rol no tiene permisos asignados</p>
                             {% endfor %}
+
                         </div>
                         {% else %}
                         <p class="text-muted">Seleccione un rol para ver sus permisos</p>

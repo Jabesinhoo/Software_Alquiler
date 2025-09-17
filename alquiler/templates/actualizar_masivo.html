@@ -17,16 +17,19 @@
             <i class="fas fa-arrow-left"></i> Volver a la lista
         </a>
         
+        {% if perms.alquiler.change_equipo %}
         <div class="acciones-rapidas">
-            <button id="seleccionar-todos" class="btn-accion">
+            <button type="button" id="seleccionar-todos" class="btn-accion">
                 <i class="fas fa-check-square"></i> Seleccionar todos disponibles
             </button>
-            <button id="deseleccionar-todos" class="btn-accion">
+            <button type="button" id="deseleccionar-todos" class="btn-accion">
                 <i class="far fa-square"></i> Deseleccionar todos
             </button>
         </div>
+        {% endif %}
     </div>
 
+    {% if perms.alquiler.change_equipo %}
     <form method="post" class="form-actualizacion" id="form-actualizacion">
         {% csrf_token %}
         
@@ -64,13 +67,14 @@
                 </thead>
                 <tbody>
                     {% for equipo in equipos %}
-                    <tr class="equipo-fila" data-disponible="{% if equipo.cantidad_disponible > 0 %}true{% else %}false{% endif %}"
+                    <tr class="equipo-fila" 
+                        data-disponible="{% if equipo.cantidad_disponible > 0 %}true{% else %}false{% endif %}"
                         data-alquilado="{% if equipo.tiene_alquiler_activo %}true{% else %}false{% endif %}">
                         <td>
                             <input type="checkbox" name="ids_equipos" value="{{ equipo.uuid_id }}"
-                                   class="check-equipo" id="equipo-{{ equipo.id }}"
+                                   class="check-equipo" id="equipo-{{ equipo.uuid_id }}"
                                    {% if equipo.tiene_alquiler_activo %}disabled{% endif %}>
-                            <label for="equipo-{{ equipo.id }}"></label>
+                            <label for="equipo-{{ equipo.uuid_id }}"></label>
                         </td>
                         <td>{{ equipo.marca }}</td>
                         <td>{{ equipo.modelo }}</td>
@@ -106,9 +110,12 @@
             </table>
         </div>
     </form>
+    {% else %}
+        <p class="alert alert-danger mt-4">
+            <i class="fas fa-lock"></i> No tienes permiso para actualizar estados masivamente.
+        </p>
+    {% endif %}
 </div>
-
-
 {% endblock %}
 
 {% block extra_js %}

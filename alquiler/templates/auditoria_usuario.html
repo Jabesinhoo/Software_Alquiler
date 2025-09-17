@@ -15,29 +15,25 @@
 <div class="row">
     <div class="col-md-12">
         <div class="card card-primary card-outline">
-            <div class="card-header">
-                <h3 class="card-title">Historial de Actividad</h3>
-                <div class="card-tools">
-                    <div class="input-group">
-                        <form method="get" class="form-inline">
-                            <input type="text" name="q" class="form-control" placeholder="Buscar..." value="{{ query }}"
-                                style="width: 250px;">
-                            <div class="input-group-append">
-                                <button type="submit" class="btn btn-default">
-                                    <i class="fas fa-search"></i>
-                                </button>
-                            </div>
-                        </form>
-                        <a href="?export=csv" class="btn btn-success ml-2">
-                            <i class="fas fa-file-csv"></i> Exportar CSV
-                        </a>
-                    </div>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="card-title mb-0">Historial de Actividad</h3>
+                <div class="d-flex">
+                    <form method="get" class="d-flex">
+                        <input type="text" name="q" class="form-control me-2"
+                               placeholder="Buscar..." value="{{ query }}" style="width: 250px;">
+                        <button type="submit" class="btn btn-outline-primary">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </form>
+                    <a href="?export=csv" class="btn btn-success ms-2">
+                        <i class="fas fa-file-csv"></i> Exportar CSV
+                    </a>
                 </div>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover audit-log-table">
-                        <thead class="thead-light">
+                        <thead class="table-light">
                             <tr>
                                 <th>Fecha/Hora</th>
                                 <th>Acción</th>
@@ -74,7 +70,7 @@
                             {% empty %}
                             <tr>
                                 <td colspan="5" class="text-center py-4">
-                                    No se encontraron registros de actividad
+                                    <i class="fas fa-info-circle me-2"></i> No se encontraron registros de actividad
                                 </td>
                             </tr>
                             {% endfor %}
@@ -87,21 +83,18 @@
 </div>
 
 <div class="row mt-4">
+    <!-- Gráfico -->
     <div class="col-md-6">
         <div class="card">
             <div class="card-header bg-secondary text-white">
-                <h3 class="card-title">Estadísticas de Acceso (Últimos 6 meses)</h3>
+                <h3 class="card-title mb-0">Estadísticas de Acceso (Últimos 6 meses)</h3>
             </div>
             <div class="card-body">
                 {% if stats_data.months %}
                     <div class="chart-container" style="position: relative; height: 300px;">
                         <canvas id="accesosChart"></canvas>
                     </div>
-                    <!-- Pasar los datos usando json_script -->
                     {{ stats_data|json_script:"chart-data" }}
-                    <script id="chart-data" type="application/json">
-                        {{ stats_data|safe }}
-                    </script>
                 {% else %}
                     <div class="alert alert-info mb-0">
                         No hay suficientes datos para mostrar estadísticas
@@ -110,10 +103,12 @@
             </div>
         </div>
     </div>
+    
+    <!-- Dispositivos -->
     <div class="col-md-6">
         <div class="card">
             <div class="card-header bg-info text-white">
-                <h3 class="card-title">Dispositivos Conocidos</h3>
+                <h3 class="card-title mb-0">Dispositivos Conocidos</h3>
             </div>
             <div class="card-body">
                 {% if devices %}
@@ -121,14 +116,14 @@
                     {% for device in devices %}
                     <li class="list-group-item">
                         <div class="d-flex align-items-center">
-                            <div class="device-icon">
-                                <i
-                                    class="fas fa-{{ device.is_mobile|yesno:'mobile-alt,desktop' }} text-{{ device.is_current|yesno:'success,secondary' }}"></i>
+                            <div class="me-3">
+                                <i class="fas fa-{{ device.is_mobile|yesno:'mobile-alt,desktop' }} 
+                                          text-{{ device.is_current|yesno:'success,secondary' }} fa-2x"></i>
                             </div>
                             <div class="flex-grow-1">
                                 <div class="d-flex justify-content-between">
                                     <strong>{{ device.browser }} - {{ device.os }}</strong>
-                                    <span class="badge badge-{{ device.is_current|yesno:'success,light' }}">
+                                    <span class="badge bg-{{ device.is_current|yesno:'success,secondary' }}">
                                         {{ device.is_current|yesno:'Actual,Inactivo' }}
                                     </span>
                                 </div>
@@ -154,12 +149,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<!-- ChartJS desde CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<!-- Debug: Verificar si Chart.js se carga -->
-<script>
-    console.log('Chart.js cargado:', typeof Chart !== 'undefined');
-</script>
-<!-- Nuestro archivo JS separado -->
 <script src="{% static 'js/auditoria.js' %}"></script>
 {% endblock %}
