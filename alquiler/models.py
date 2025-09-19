@@ -109,7 +109,9 @@ class Equipo(models.Model):
 
     def obtener_foto_principal(self):
         foto = self.fotos.filter(es_principal=True).first()
-        return foto.foto.url if foto else static('img/default-equipo.png')
+        if foto and foto.foto:
+            return foto.foto.url
+        return f"{settings.MEDIA_URL}equipos/default-equipo.png"
 
     def cantidad_numeros_serie(self):
         return len([s.strip() for s in self.numero_serie.split(',') if s.strip()]) if self.numero_serie else 0
