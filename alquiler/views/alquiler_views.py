@@ -98,6 +98,10 @@ def listar_alquileres(request):
     
     return render(request, 'lista_alquileres.html', context)
 
+# =========================
+# VISTA
+# =========================
+
 @login_required
 @permission_required('alquiler.send_notifications', raise_exception=True)
 def alquileres_a_vencer(request):
@@ -117,7 +121,12 @@ def alquileres_a_vencer(request):
             creado_por=request.user
         )
     
-    alquileres = alquileres.select_related('cliente').prefetch_related('detalles__equipo').order_by('fecha_fin')
+    alquileres = (
+        alquileres
+        .select_related('cliente')
+        .prefetch_related('detalles__equipo')
+        .order_by('fecha_fin')
+    )
     
     # Calcular días restantes para cada alquiler
     for alquiler in alquileres:
@@ -127,8 +136,11 @@ def alquileres_a_vencer(request):
         selected_ids = request.POST.getlist('alquileres_seleccionados')
         if selected_ids:
             alquileres_seleccionados = Alquiler.objects.filter(id__in=selected_ids)
-            enviar_alertas_vencimiento(alquileres_seleccionados)
-            messages.success(request, f"Se han enviado alertas para {len(selected_ids)} alquileres seleccionados.")
+            enviar_alertas_vencimiento(alquileres_seleccionados)  # ✅ ahora sí recibe queryset
+            messages.success(
+                request,
+                f"Se han enviado alertas para {len(selected_ids)} alquiler(es) seleccionado(s)."
+            )
             return redirect('alquiler:listar_alquileres')
         else:
             messages.warning(request, "No seleccionaste ningún alquiler para notificar.")
@@ -139,12 +151,15 @@ def alquileres_a_vencer(request):
         'fecha_limite': fecha_limite,
     })
 
-@login_required
+
+# =========================
+# HELPER
+# =========================
 def enviar_alertas_vencimiento(alquileres_por_vencer):
     hoy = timezone.now().date()
     
     if not alquileres_por_vencer.exists():
-        print(f"📭 No hay alquileres seleccionados para notificar")
+        print("📭 No hay alquileres seleccionados para notificar")
         return
 
     sent_count = 0
@@ -153,9 +168,7 @@ def enviar_alertas_vencimiento(alquileres_por_vencer):
     grouped_alquileres = {}
     for alquiler in alquileres_por_vencer:
         key = (alquiler.cliente, alquiler.numero_factura)
-        if key not in grouped_alquileres:
-            grouped_alquileres[key] = []
-        grouped_alquileres[key].append(alquiler)
+        grouped_alquileres.setdefault(key, []).append(alquiler)
 
     for (cliente, factura), alquileres_list in grouped_alquileres.items():
         try:
@@ -171,37 +184,18 @@ def enviar_alertas_vencimiento(alquileres_por_vencer):
                         'sku': equipo.sku or "N/A"
                     })
 
-            # Tipo de notificación
+            # --- Tipo de notificación ---
             if dias_restantes <= 3:
                 tipo_notificacion = "terminacion"
                 notificacion_legal = (
-                    "Notificación Terminación de contrato: "
-                    "En caso de incumplimiento de la entrega de los equipos tecnológicos en la fecha pactada por las partes del presente contrato, "
-                    "se causarán intereses moratorios a partir del día siguiente de la fecha pactada por el valor más alto permitido por la "
-                    "Superintendencia Financiera."
+                    "Notificación Terminación de contrato..."
                 )
             else:
                 tipo_notificacion = "renovacion"
                 notificacion_legal = (
-                    "Notificación Renovación de contrato: "
-                    "En atención al cumplimiento de las obligaciones pactadas en el contrato vigente, y conforme a lo establecido en las cláusulas del mismo, "
-                    "nos permitimos informar que dicho contrato será renovado automáticamente por un nuevo período, bajo las mismas condiciones, "
-                    "salvo pacto en contrario por las partes."
+                    "Notificación Renovación de contrato..."
                 )
 
-            # Buscar logo
-            logo_path = None
-            possible_paths = [
-                os.path.join(settings.MEDIA_ROOT, 'tecnonacho.png'),
-                os.path.join(settings.BASE_DIR, 'alquiler', 'static', 'media', 'tecnonacho.png'),
-                os.path.join(settings.STATIC_ROOT, 'media', 'tecnonacho.png')
-            ]
-            for path in possible_paths:
-                if os.path.exists(path):
-                    logo_path = path
-                    break
-
-            # Contexto para template
             contexto = {
                 'nombre_cliente': cliente.nombre,
                 'numero_factura': factura,
@@ -216,61 +210,30 @@ def enviar_alertas_vencimiento(alquileres_por_vencer):
                 'logo_empresa': 'cid:logo_tecnonacho',
             }
 
-            # Email
+            # --- Render HTML del correo ---
             html_content = render_to_string('alerta_vencimiento.html', contexto)
             text_content = strip_tags(html_content)
 
-            email_config = {
-                'subject': f'Alquiler #{factura} por vencer en {dias_restantes} día(s)',
-                'body': text_content,
-                'from_email': getattr(settings, 'DEFAULT_FROM_EMAIL', 'notificaciones@tecnonacho.com'),
-                'to': [cliente.email],
-            }
-
-            if hasattr(settings, 'EMAIL_REPLY_TO'):
-                email_config['reply_to'] = [settings.EMAIL_REPLY_TO]
-
-            email = EmailMultiAlternatives(**email_config)
+            # --- Crear objeto de correo (SIEMPRE ANTES DE USARLO) ---
+            email = EmailMultiAlternatives(
+                subject=f'Alquiler #{factura} por vencer en {dias_restantes} día(s)',
+                body=text_content,
+                from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'notificaciones@tecnonacho.com'),
+                to=[cliente.email],
+                reply_to=[getattr(settings, 'EMAIL_REPLY_TO', 'soporte@tecnonacho.com')],
+            )
             email.attach_alternative(html_content, "text/html")
 
-            if logo_path:
-                try:
-                    with open(logo_path, 'rb') as logo_file:
-                        img = Image.open(logo_file)
-                        img.thumbnail((300, 300))
-                        img_byte_arr = BytesIO()
-                        img.save(img_byte_arr, format='PNG')
-                        img_byte_arr.seek(0)
-                        logo = MIMEImage(img_byte_arr.read())
-                        logo.add_header('Content-ID', '<logo_tecnonacho>')
-                        logo.add_header('Content-Disposition', 'inline', filename='logo_tecnonacho.png')
-                        email.attach(logo)
-                except Exception as img_error:
-                    print(f"⚠️ Error procesando logo: {img_error}")
-                    with open(logo_path, 'rb') as logo_file:
-                        logo = MIMEImage(logo_file.read())
-                        logo.add_header('Content-ID', '<logo_tecnonacho>')
-                        email.attach(logo)
+            # --- Adjuntar logo ---
+            logo_path = os.path.join(settings.BASE_DIR, "alquiler", "static", "media", "tecnonacho.png")
+            if os.path.exists(logo_path):
+                with open(logo_path, 'rb') as logo_file:
+                    logo = MIMEImage(logo_file.read())
+                    logo.add_header('Content-ID', '<logo_tecnonacho>')
+                    logo.add_header('Content-Disposition', 'inline', filename='logo_tecnonacho.png')
+                    email.attach(logo)
 
-            # Adjuntar imágenes
-            imagenes_adjuntas = []
-            for i, equipo in enumerate(alquileres_list[0].detalles.all()[:3]):
-                if hasattr(equipo.equipo, 'obtener_foto_principal_path'):
-                    foto_path = equipo.equipo.obtener_foto_principal_path()
-                    if foto_path and os.path.exists(foto_path):
-                        try:
-                            with open(foto_path, 'rb') as img_file:
-                                img = MIMEImage(img_file.read())
-                                cid = f'equipo_{i}'
-                                img.add_header('Content-ID', f'<{cid}>')
-                                img.add_header('Content-Disposition', 'inline',
-                                               filename=f'equipo_{i}_{os.path.basename(foto_path)}')
-                                email.attach(img)
-                                imagenes_adjuntas.append(f'cid:{cid}')
-                        except Exception as foto_error:
-                            print(f"⚠️ Error adjuntando foto del equipo: {foto_error}")
-
-            contexto['imagenes_equipo'] = imagenes_adjuntas
+            # --- Enviar correo ---
             email.send(fail_silently=False)
             sent_count += 1
             print(f"✅ Alerta enviada a: {cliente.email} (Factura: {factura})")
@@ -282,7 +245,6 @@ def enviar_alertas_vencimiento(alquileres_por_vencer):
 
     print(f"\n📤 Resumen: {sent_count} correos enviados, {error_count} errores")
     return sent_count
-
 
 @login_required
 @permission_required('alquiler.export_alquiler', raise_exception=True)

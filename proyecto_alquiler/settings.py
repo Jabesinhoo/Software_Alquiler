@@ -229,15 +229,16 @@ if DEBUG or USE_LOCAL:
     STATICFILES_DIRS = [
         BASE_DIR / 'alquiler' / 'static',
     ]
-    STATIC_ROOT = BASE_DIR / 'staticfiles' # <--- Define una ruta para desarrollo
+    STATIC_ROOT = BASE_DIR / 'staticfiles'
     MEDIA_ROOT = BASE_DIR / 'alquiler' / 'static' / 'media'
 else:
     STATICFILES_DIRS = [
         BASE_DIR / 'alquiler' / 'static',
     ]
-    STATIC_ROOT = BASE_DIR / 'staticfiles'
-    MEDIA_ROOT = BASE_DIR / 'media'
+    STATIC_ROOT = BASE_DIR / 'staticfiles'   # aquí se irán tus estáticos (css, js, imágenes del proyecto)
+    MEDIA_ROOT = BASE_DIR / 'media'          # aquí se guardarán los contratos, fotos de equipos, etc.
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 
 
 CKEDITOR_UPLOAD_PATH = "uploads/"
