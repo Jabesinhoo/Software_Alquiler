@@ -494,14 +494,34 @@ class DetalleAlquiler(models.Model):
 
 
     def actualizar_disponibilidad_equipo(self):
-        equipo = self.equipo
-        if self.numeros_serie and len(self.numeros_serie) > 0:
-            pass
+        if not self.pk:
+        # Es un nuevo detalle → validar siempre
+            validar = True
+            cantidad_original = 0
         else:
-            equipo.cantidad_disponible = F('cantidad_disponible') - self.cantidad
-            equipo.save(update_fields=['cantidad_disponible'])
+            try:
+                original = DetalleAlquiler.objects.get(pk=self.pk)
+                validar = (
+                    original.equipo_id != self.equipo_id
+                    or original.cantidad != self.cantidad
+                )
+                cantidad_original = original.cantidad
+            except DetalleAlquiler.DoesNotExist:
+                validar = True
+                cantidad_original = 0
 
-        equipo.actualizar_disponibilidad()
+        if not validar:
+            return  # ❌ No hay cambios → no validamos
+
+        equipo = self.equipo
+        stock_virtual = equipo.cantidad_disponible + cantidad_original
+        if self.cantidad > stock_virtual:
+            raise ValidationError(
+                f"No hay suficiente disponibilidad para el equipo {equipo.marca} {equipo.modelo} "
+                f"(disponibles: {stock_virtual}, requeridos: {self.cantidad})"
+            )
+
+
 
 
 class Acta(models.Model):

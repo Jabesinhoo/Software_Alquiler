@@ -456,29 +456,34 @@ def pagos_vencidos(request):
 def cambiar_estado_pago(request, pago_uuid, nuevo_estado):
     pago = get_object_or_404(Pago, uuid_id=pago_uuid)
     estado_anterior = pago.estado_pago
-    
+
     if nuevo_estado not in dict(Pago.ESTADO_PAGO):
         messages.error(request, 'Estado inválido')
         return redirect('alquiler:detalle_pago', pago_uuid=pago.uuid_id)
-    
-    # Actualizar estado del pago
-    pago.estado_pago = nuevo_estado
-    pago.aprobado_por = request.user
-    pago.save()
-    
-    # Verificar estado del alquiler relacionado
-    verificar_estado_pago_alquiler(pago.alquiler)
-    
-    # Notificación solo para pagos aprobados
-    if nuevo_estado == 'pagado' and estado_anterior != 'pagado':
-        enviar_confirmacion_pago(pago)
-        messages.success(request, 'Pago aprobado y notificación enviada al cliente')
-    else:
-        messages.success(request, f'Estado del pago actualizado a {pago.get_estado_pago_display()}')
-    
+
+    try:
+        # Actualizar estado del pago
+        pago.estado_pago = nuevo_estado
+        pago.aprobado_por = request.user
+        pago.save()
+
+        # Verificar estado del alquiler relacionado
+        verificar_estado_pago_alquiler(pago.alquiler)
+
+        # Notificación solo para pagos aprobados
+        if nuevo_estado == 'pagado' and estado_anterior != 'pagado':
+            enviar_confirmacion_pago(pago)
+            messages.success(request, 'Pago aprobado y notificación enviada al cliente')
+        else:
+            messages.success(request, f'Estado del pago actualizado a {pago.get_estado_pago_display()}')
+
+    except Exception as e:
+        messages.error(request, f"Ocurrió un error al actualizar el estado del pago: {str(e)}")
+
     return redirect('alquiler:detalle_pago', pago_uuid=pago.uuid_id)
 
-@login_required
+
+
 def enviar_confirmacion_pago(pago):
     try:
         cliente = pago.alquiler.cliente
@@ -778,7 +783,7 @@ def registrar_pago_parcial(request):
 
     return render(request, 'registrar_pago_parcial.html', context)
 
-@login_required
+
 def verificar_estado_pago_alquiler(alquiler):
     total_pagado = alquiler.pagos.aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
     
