@@ -8,6 +8,7 @@ class PagoForm(forms.ModelForm):
     class Meta:
         model = Pago
         fields = [
+            'alquiler',
             'monto',
             'metodo_pago',
             'estado_pago',
@@ -15,6 +16,7 @@ class PagoForm(forms.ModelForm):
             'fecha_vencimiento',
             'comprobante_pago',
             'notas'
+            
         ]
         widgets = {
             'alquiler': forms.Select(attrs={'class': 'form-control'}),
@@ -59,7 +61,6 @@ class PagoParcialForm(PagoForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Solo mostrar alquileres con saldo pendiente > 0
         from alquiler.models import Alquiler
         alquileres_con_saldo = [
             a.id for a in Alquiler.objects.all()
@@ -67,6 +68,9 @@ class PagoParcialForm(PagoForm):
         ]
         self.fields['alquiler'].queryset = Alquiler.objects.filter(id__in=alquileres_con_saldo)
 
+        # Forzar que no puedan cambiar el estado (siempre parcial)
+        self.fields['estado_pago'].initial = 'parcial'
+        self.fields['estado_pago'].disabled = True
 
 
 
