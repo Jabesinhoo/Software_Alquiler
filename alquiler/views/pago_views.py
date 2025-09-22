@@ -559,21 +559,27 @@ def pagos_proximos_vencer(request):
 @permission_required('alquiler.view_pago', raise_exception=True)
 def detalle_pago(request, pago_uuid):
     pago = get_object_or_404(Pago, uuid_id=pago_uuid)
-    
+
+    # Determinar quién aprobó
     if hasattr(pago.aprobado_por, 'get_full_name') and pago.aprobado_por.get_full_name():
         nombre_aprobador = pago.aprobado_por.get_full_name()
     elif hasattr(pago.aprobado_por, 'email'):
         nombre_aprobador = pago.aprobado_por.email
     else:
-        nombre_aprobador = str(pago.aprobado_por)
+        nombre_aprobador = str(pago.aprobado_por) if pago.aprobado_por else "Sistema"
+
+    # ✅ Protegemos alquiler y cliente
+    alquiler = pago.alquiler if pago.alquiler else None
+    cliente = alquiler.cliente if (alquiler and getattr(alquiler, "cliente", None)) else None
 
     context = {
         'pago': pago,
-        'alquiler': pago.alquiler,
-        'cliente': pago.alquiler.cliente,
+        'alquiler': alquiler,
+        'cliente': cliente,
         'nombre_aprobador': nombre_aprobador,
     }
     return render(request, 'detalle_pago.html', context)
+
 
 
 @login_required
