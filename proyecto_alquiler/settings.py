@@ -224,6 +224,7 @@ USE_L10N = True
 # URLs para archivos estáticos y media
 STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 if DEBUG or USE_LOCAL:
     STATICFILES_DIRS = [
