@@ -579,7 +579,6 @@ def detalle_pago(request, pago_uuid):
 @login_required
 @permission_required('alquiler.add_pago', raise_exception=True)
 def registrar_pago(request):
-    
     if request.method == 'POST':
         form = PagoForm(request.POST, request.FILES)
         if form.is_valid():
@@ -587,8 +586,8 @@ def registrar_pago(request):
             pago.aprobado_por = request.user
             pago.save()
             
-            # Actualizar estado del alquiler si es necesario
-            if pago.estado_pago == 'pagado':
+            # Actualizar estado del alquiler solo si existe y corresponde
+            if pago.estado_pago == 'pagado' and pago.alquiler:
                 pago.alquiler.estado_alquiler = 'finalizado'
                 pago.alquiler.save()
             
