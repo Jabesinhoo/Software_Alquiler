@@ -60,7 +60,7 @@
                     <td>{{ pago.alquiler.cliente.nombre }}</td>
                     <td>Alquiler #{{ pago.alquiler.id }}</td>
                     <td>${{ pago.monto }}</td>
-                    <td>{{ pago.fecha_vencimiento|date:"d/m/Y" }}</td>
+                    <td>{{ pago.fecha_vencimiento|date:"d/m/Y"|default:"Sin fecha" }}</td>
                     <td>
                         <span class="{% if pago.dias_restantes <= 3 %}text-danger{% endif %}">
                             {{ pago.dias_restantes }}

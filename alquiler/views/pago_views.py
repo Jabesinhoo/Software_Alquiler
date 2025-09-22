@@ -439,8 +439,10 @@ def pagos_vencidos(request):
     hoy = timezone.now().date()
     pagos = Pago.objects.filter(
         estado_pago__in=['pendiente', 'parcial'],
+        fecha_vencimiento__isnull=False,
         fecha_vencimiento__lt=hoy
     ).order_by('fecha_vencimiento')
+
     
     total_vencido = pagos.aggregate(total=Sum('monto'))['total'] or 0
     
