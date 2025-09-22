@@ -421,15 +421,23 @@ class Alquiler(models.Model):
         self.save(update_fields=['precio_total'])
         return self.precio_total
 
+    @property
     def total_pagado(self):
-        # Asegura que siempre se retorne un Decimal, incluso si no hay pagos.
-        return self.pagos.all().aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
+        """
+        Retorna la suma de todos los pagos (pagados y parciales).
+        Garantiza siempre un Decimal.
+        """
+        return self.pagos.filter(
+            estado_pago__in=['pagado', 'parcial']
+        ).aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
 
     @property
     def saldo_pendiente(self):
-        # Asegura que precio_total_val sea Decimal, y que total_pagado() también lo sea.
+        """
+        Precio total menos lo pagado.
+        """
         precio_total_val = self.precio_total if self.precio_total is not None else Decimal('0.00')
-        return precio_total_val - self.total_pagado()
+        return precio_total_val - self.total_pagado
     
 
 class DetalleAlquiler(models.Model):
