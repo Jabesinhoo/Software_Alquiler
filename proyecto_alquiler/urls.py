@@ -87,7 +87,6 @@ core_patterns = [
     path('clientes/<uuid:id>/validar-documentos/', validar_documentos_cliente, name='validar_documentos_cliente'),
 
     #Urls Alquileres 
-    path('alquiler/<uuid:id_alquiler>/pago-parcial/', registrar_pago_parcial, name='registrar_pago_parcial'),
     path('alquileres/', listar_alquileres, name='listar_alquileres'),
     path('alquileres/crear/', crear_alquiler, name='crear_alquiler'),
 
