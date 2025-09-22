@@ -778,12 +778,11 @@ def pagos_parciales(request):
 
 @login_required
 @permission_required('alquiler.add_pago', raise_exception=True)
-def registrar_pago_parcial(request, alquiler_uuid=None):
+def registrar_pago_parcial(request, alquiler_uuid=None):   # 👈 aceptar alquiler_uuid
     alquiler = None
     initial = {}
 
     if alquiler_uuid:
-        # caso cuando viene en la URL
         try:
             alquiler = Alquiler.objects.get(uuid_id=alquiler_uuid)
             initial['alquiler'] = alquiler
@@ -791,7 +790,6 @@ def registrar_pago_parcial(request, alquiler_uuid=None):
         except Alquiler.DoesNotExist:
             messages.error(request, 'El alquiler especificado no existe.')
     elif request.GET.get('alquiler_id'):
-        # caso cuando viene como query param
         try:
             alquiler = Alquiler.objects.get(uuid_id=request.GET['alquiler_id'])
             initial['alquiler'] = alquiler
@@ -810,11 +808,10 @@ def registrar_pago_parcial(request, alquiler_uuid=None):
     else:
         form = PagoParcialForm(initial=initial)
 
-    context = {
+    return render(request, 'registrar_pago_parcial.html', {
         'form': form,
-        'alquiler': alquiler,
-    }
-    return render(request, 'registrar_pago_parcial.html', context)
+        'alquiler': alquiler
+    })
 
 
 def verificar_estado_pago_alquiler(alquiler):
