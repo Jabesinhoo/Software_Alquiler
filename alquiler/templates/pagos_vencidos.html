@@ -63,14 +63,14 @@
                     <td>{{ pago.fecha_vencimiento|date:"d/m/Y" }}</td>
                     <td>{{ pago.dias_retraso }}</td>
                     <td class="acciones-cell">
-                        <a href="{% url 'alquiler:detalle_pago' pago.id %}" class="btn btn-sm btn-primary">
+                        <a href="{% url 'alquiler:detalle_pago' pago.uuid_id %}" class="btn btn-sm btn-primary">
                             <i class="fas fa-eye"></i> Ver
                         </a>
-                        <a href="{% url 'alquiler:registrar_pago' %}?alquiler_id={{ pago.alquiler.id }}"
+                        <a href="{% url 'alquiler:registrar_pago' %}?alquiler_id={{ pago.alquiler.uuid_id }}"
                             class="btn btn-sm btn-success">
                             <i class="fas fa-money-bill-wave"></i> Pagar
                         </a>
-                        <a href="{% url 'alquiler:editar_pago' pago.id %}" class="btn btn-sm btn-outline-primary">
+                        <a href="{% url 'alquiler:editar_pago' pago.uuid_id %}" class="btn btn-sm btn-outline-primary">
                             <i class="fas fa-edit"></i> Editar
                         </a>
                     </td>

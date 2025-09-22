@@ -437,20 +437,37 @@ def api_datos_graficas(request):
 @permission_required('alquiler.view_pago', raise_exception=True)
 def pagos_vencidos(request):
     hoy = timezone.now().date()
-    pagos = Pago.objects.filter(
-        estado_pago__in=['pendiente', 'parcial'],
-        fecha_vencimiento__isnull=False,
-        fecha_vencimiento__lt=hoy
-    ).order_by('fecha_vencimiento')
+    print(f"===> Entrando a pagos_vencidos. Hoy: {hoy}")
 
-    
-    total_vencido = pagos.aggregate(total=Sum('monto'))['total'] or 0
-    
+    try:
+        pagos = Pago.objects.filter(
+            estado_pago__in=['pendiente', 'parcial'],
+            fecha_vencimiento__lt=hoy
+        ).order_by('fecha_vencimiento')
+
+        print(f"Total pagos encontrados: {pagos.count()}")
+        for p in pagos:
+            print(f"Pago ID={p.id}, UUID={p.uuid_id}, estado={p.estado_pago}, "
+                  f"fecha_vencimiento={p.fecha_vencimiento}, monto={p.monto}, "
+                  f"alquiler={p.alquiler_id if p.alquiler else 'SIN ALQUILER'}")
+
+    except Exception as e:
+        print(">>> ERROR al obtener pagos vencidos:", str(e))
+        pagos = Pago.objects.none()
+
+    try:
+        total_vencido = pagos.aggregate(total=Sum('monto'))['total'] or 0
+        print(f"Total vencido: {total_vencido}")
+    except Exception as e:
+        print(">>> ERROR al calcular total vencido:", str(e))
+        total_vencido = 0
+
     return render(request, 'pagos_vencidos.html', {
         'pagos': pagos,
         'total_vencido': total_vencido,
         'titulo': 'Pagos Vencidos'
     })
+
 
 
 @login_required
