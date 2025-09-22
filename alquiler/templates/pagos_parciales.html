@@ -73,13 +73,16 @@
                     <td>${{ pago.alquiler.saldo_pendiente }}</td>
                     <td class="acciones-cell">
                         <a href="{% url 'alquiler:detalle_pago' pago.uuid_id %}" class="btn btn-sm btn-primary">
-    <i class="fas fa-eye"></i> Ver
-</a>
+                            <i class="fas fa-eye"></i> Ver
+                        </a>
 
-                     <a href="{% url 'alquiler:registrar_pago_parcial_alquiler' pago.alquiler.uuid_id %}"
-   class="btn btn-sm btn-success">
-   <i class="fas fa-money-bill-wave"></i> Pagar
-</a>
+                    {% if pago.alquiler %}
+    <a href="{% url 'alquiler:registrar_pago_parcial_alquiler' pago.alquiler.uuid_id %}"
+       class="btn btn-sm btn-success">
+       <i class="fas fa-money-bill-wave"></i> Pagar
+    </a>
+{% endif %}
+
 
 
                     <a href="{% url 'alquiler:editar_pago' pago.uuid_id %}" class="btn btn-sm btn-outline-primary">
