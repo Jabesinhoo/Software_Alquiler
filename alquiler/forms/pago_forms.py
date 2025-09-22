@@ -58,10 +58,15 @@ class PagoForm(forms.ModelForm):
 class PagoParcialForm(PagoForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        # Solo mostrar alquileres con saldo pendiente > 0
         from alquiler.models import Alquiler
-        alquileres_con_saldo = [a.id for a in Alquiler.objects.all() if a.saldo_pendiente > 0]
-        if 'alquiler' in self.fields:
-            self.fields['alquiler'].queryset = Alquiler.objects.filter(id__in=alquileres_con_saldo)
+        alquileres_con_saldo = [
+            a.id for a in Alquiler.objects.all()
+            if a.saldo_pendiente > 0
+        ]
+        self.fields['alquiler'].queryset = Alquiler.objects.filter(id__in=alquileres_con_saldo)
+
 
 
 
