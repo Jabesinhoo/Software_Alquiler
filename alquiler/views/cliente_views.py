@@ -211,25 +211,3 @@ def validar_documentos_cliente(request, id):
 
     return redirect('alquiler:detalle_cliente', id=cliente.uuid_id)
 
-@login_required
-@permission_required('alquiler.add_pago', raise_exception=True)
-def registrar_pago_parcial(request, id_alquiler):
-    alquiler = get_object_or_404(Alquiler, uuid_id=id_alquiler)
-
-
-    if request.method == 'POST':
-        form = PagoForm(request.POST)
-        if form.is_valid():
-            pago = form.save(commit=False)
-            pago.alquiler = alquiler
-            pago.estado_pago = 'parcial'
-            pago.save()
-            messages.success(request, "Pago parcial registrado.")
-            return redirect('alquiler:detalle_cliente', id=alquiler.cliente.uuid_id)
-    else:
-        form = PagoForm()
-
-    return render(request, 'registrar_pago_parcial.html', {
-        'form': form, 'alquiler': alquiler
-    })
-
