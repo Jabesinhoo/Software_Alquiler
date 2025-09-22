@@ -91,7 +91,6 @@ core_patterns = [
     path('alquileres/', listar_alquileres, name='listar_alquileres'),
     path('alquileres/crear/', crear_alquiler, name='crear_alquiler'),
 
-    # Asumo que equipo_id también podría ser un UUID en el futuro
     path('equipos/<uuid:equipo_id>/series-disponibles/', series_disponibles, name='series_disponibles'),
     path('alquileres/<uuid:id>/finalizar/', finalizar_alquiler, name='finalizar_alquiler'),
     path('alquileres/reservar/', reservar_alquiler, name='reservar_alquiler'),
