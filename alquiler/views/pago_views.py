@@ -778,38 +778,42 @@ def pagos_parciales(request):
 
 @login_required
 @permission_required('alquiler.add_pago', raise_exception=True)
-def registrar_pago_parcial(request):
+def registrar_pago_parcial(request, alquiler_uuid=None):
+    alquiler = None
+    initial = {}
+
+    if alquiler_uuid:
+        # caso cuando viene en la URL
+        try:
+            alquiler = Alquiler.objects.get(uuid_id=alquiler_uuid)
+            initial['alquiler'] = alquiler
+            initial['monto'] = alquiler.saldo_pendiente * Decimal('0.5')
+        except Alquiler.DoesNotExist:
+            messages.error(request, 'El alquiler especificado no existe.')
+    elif request.GET.get('alquiler_id'):
+        # caso cuando viene como query param
+        try:
+            alquiler = Alquiler.objects.get(uuid_id=request.GET['alquiler_id'])
+            initial['alquiler'] = alquiler
+            initial['monto'] = alquiler.saldo_pendiente * Decimal('0.5')
+        except Alquiler.DoesNotExist:
+            messages.error(request, 'El alquiler especificado no existe.')
+
     if request.method == 'POST':
         form = PagoParcialForm(request.POST, request.FILES)
         if form.is_valid():
             pago = form.save(commit=False)
-            pago.estado_pago = 'parcial'  # Forzar estado parcial
+            pago.estado_pago = 'parcial'
             pago.save()
-
             messages.success(request, f'Pago parcial #{pago.id} registrado correctamente.')
             return redirect('alquiler:detalle_pago', pago_uuid=pago.uuid_id)
     else:
-        alquiler_uuid = request.GET.get('alquiler_id')
-        initial = {}
-        alquiler = None
-
-        if alquiler_uuid:
-            try:
-                alquiler = Alquiler.objects.get(uuid_id=alquiler_uuid)
-                initial = {'alquiler': alquiler}
-                form = PagoParcialForm(initial=initial)
-                form.fields['alquiler'].disabled = True  # 🔒 Bloquear selección
-            except Alquiler.DoesNotExist:
-                messages.error(request, 'El alquiler especificado no existe.')
-
-
         form = PagoParcialForm(initial=initial)
 
     context = {
         'form': form,
-        'alquiler': alquiler  # Ya tienes la instancia
+        'alquiler': alquiler,
     }
-
     return render(request, 'registrar_pago_parcial.html', context)
 
 
