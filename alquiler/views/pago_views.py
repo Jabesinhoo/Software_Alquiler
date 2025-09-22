@@ -796,12 +796,12 @@ def registrar_pago_parcial(request):
         if alquiler_uuid:
             try:
                 alquiler = Alquiler.objects.get(uuid_id=alquiler_uuid)
-                initial = {
-                    'alquiler': alquiler,
-                    'monto': alquiler.saldo_pendiente * Decimal('0.5'),
-                }
+                initial = {'alquiler': alquiler}
+                form = PagoParcialForm(initial=initial)
+                form.fields['alquiler'].disabled = True  # 🔒 Bloquear selección
             except Alquiler.DoesNotExist:
                 messages.error(request, 'El alquiler especificado no existe.')
+
 
         form = PagoParcialForm(initial=initial)
 

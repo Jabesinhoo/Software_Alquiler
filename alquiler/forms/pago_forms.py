@@ -58,9 +58,9 @@ class PagoForm(forms.ModelForm):
 class PagoParcialForm(PagoForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.instance and self.instance.alquiler:
-            max_saldo = self.instance.alquiler.saldo_pendiente if self.instance.alquiler.saldo_pendiente is not None else Decimal('0.00')
-            self.fields['monto'].widget.attrs.update({'max': max_saldo})
+        from alquiler.models import Alquiler
+        alquileres_con_saldo = [a.id for a in Alquiler.objects.all() if a.saldo_pendiente > 0]
+        self.fields['alquiler'].queryset = Alquiler.objects.filter(id__in=alquileres_con_saldo)
 
 
 class AprobarPagoForm(forms.ModelForm):

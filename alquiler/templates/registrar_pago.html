@@ -46,12 +46,13 @@
       {% endif %}
       
       <div class="pago-form-group">
-        <label for="{{ form.alquiler.id_for_label }}">Alquiler</label>
-        {{ form.alquiler }}
-        {% if form.alquiler.errors %}
-        <div class="text-danger">{{ form.alquiler.errors }}</div>
-        {% endif %}
-      </div>
+    <label for="{{ form.alquiler.id_for_label }}">Alquiler</label>
+    {{ form.alquiler }}
+    {% if form.alquiler.errors %}
+    <div class="text-danger">{{ form.alquiler.errors }}</div>
+    {% endif %}
+</div>
+
       
       <div class="row">
         <div class="col-md-6">
