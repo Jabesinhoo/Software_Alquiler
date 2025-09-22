@@ -518,6 +518,7 @@ def enviar_confirmacion_pago(pago):
         logger.error(f"Error enviando confirmación de pago {pago.id}: {str(e)}")
 
 
+
 @login_required
 @permission_required('alquiler.view_pago', raise_exception=True)
 def pagos_proximos_vencer(request):
@@ -731,10 +732,12 @@ def pagos_parciales(request):
     # Calcular total parcial
     total_parcial = pagos.aggregate(total=Sum('monto'))['total'] or 0
     
-    # Calcular saldo pendiente promedio
-    saldos = []
-    for pago in pagos:
-        saldos.append(float(pago.alquiler.saldo_pendiente))
+    # Calcular saldo pendiente promedio (solo de pagos con alquiler válido)
+    saldos = [
+        float(pago.alquiler.saldo_pendiente)
+        for pago in pagos
+        if pago.alquiler and pago.alquiler.saldo_pendiente is not None
+    ]
     
     saldo_promedio = sum(saldos) / len(saldos) if saldos else 0
     
@@ -745,6 +748,8 @@ def pagos_parciales(request):
     }
     
     return render(request, 'pagos_parciales.html', context)
+
+
 
 
 @login_required
@@ -785,15 +790,17 @@ def registrar_pago_parcial(request):
 
 
 def verificar_estado_pago_alquiler(alquiler):
-    total_pagado = alquiler.pagos.aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
-    
-    if total_pagado >= alquiler.precio_total:
-        alquiler.estado_alquiler = 'finalizado'
-        alquiler.save()
-        # Actualizar todos los pagos parciales a 'pagado'
-        alquiler.pagos.filter(estado_pago='parcial').update(estado_pago='pagado')
-        return True
-    return False
+    if not alquiler:
+        return
+
+    total_pagado = alquiler.pagos.filter(
+        estado_pago__in=['pagado', 'parcial']
+    ).aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
+
+    if total_pagado > 0:
+        alquiler.estado_alquiler = 'activo'
+        alquiler.save(update_fields=['estado_alquiler'])
+
 
 
 

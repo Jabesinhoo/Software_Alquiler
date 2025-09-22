@@ -1,17 +1,26 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Detalle de Pago con # de Factura {{ pago.alquiler.numero_factura }}{% endblock %}
+{% block title %}
+Detalle de Pago {% if pago.alquiler %}con # de Factura {{ pago.alquiler.numero_factura }}{% else %}(Sin alquiler vinculado){% endif %}
+{% endblock %}
+
 {% block styles %}
 <link rel="stylesheet" href="{% static 'css/pagos.css' %}">
 {% endblock %}
 
-{% block page_title %}Detalle de Pago con # de Factura {{ pago.alquiler.numero_factura  }}{% endblock %}
+{% block page_title %}
+Detalle de Pago {% if pago.alquiler %}con # de Factura {{ pago.alquiler.numero_factura }}{% else %}(Sin alquiler vinculado){% endif %}
+{% endblock %}
 
 {% block content %}
 <div class="pagos-container">
     <div class="pagos-header">
-        <h2><i class="fas fa-file-invoice-dollar"></i> Detalle de Pago con # de Factura {{ pago.alquiler.numero_factura  }}</h2>
+        <h2>
+            <i class="fas fa-file-invoice-dollar"></i>
+            Detalle de Pago
+            {% if pago.alquiler %}con # de Factura {{ pago.alquiler.numero_factura }}{% else %}(Sin alquiler vinculado){% endif %}
+        </h2>
         <div class="header-actions">
             <a href="{% url 'alquiler:lista_pagos' %}" class="btn btn-outline-primary">
                 <i class="fas fa-arrow-left"></i> Volver
@@ -19,17 +28,17 @@
             <a href="{% url 'alquiler:editar_pago' pago.uuid_id %}" class="btn btn-outline-primary">
                 <i class="fas fa-edit"></i> Editar
             </a>
+            {% if pago.alquiler %}
             <a href="{% url 'alquiler:generar_factura_pdf' pago.uuid_id %}" class="btn btn-primary">
                 <i class="fas fa-file-pdf"></i> Generar Factura
             </a>
+            {% endif %}
         </div>
     </div>
 
     {% if messages %}
     {% for message in messages %}
-    <div class="alert alert-{{ message.tags }}">
-        {{ message }}
-    </div>
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
     {% endfor %}
     {% endif %}
 
@@ -41,6 +50,7 @@
             </span>
         </div>
         <div class="card-body">
+            {% if pago.alquiler and pago.alquiler.cliente %}
             <div class="pago-summary-item">
                 <span class="label">Cliente</span>
                 <span class="value">{{ pago.alquiler.cliente.nombre }}</span>
@@ -49,6 +59,13 @@
                 <span class="label">Factura</span>
                 <span class="value">#{{ pago.alquiler.numero_factura }}</span>
             </div>
+            {% else %}
+            <div class="pago-summary-item">
+                <span class="label">Alquiler</span>
+                <span class="value">No vinculado</span>
+            </div>
+            {% endif %}
+
             <div class="pago-summary-item">
                 <span class="label">Monto</span>
                 <span class="value amount">${{ pago.monto }}</span>
@@ -63,7 +80,7 @@
             </div>
             <div class="pago-summary-item">
                 <span class="label">Fecha de Vencimiento</span>
-                <span class="value">{{ pago.fecha_vencimiento|date:"d/m/Y" }}</span>
+                <span class="value">{{ pago.fecha_vencimiento|date:"d/m/Y"|default:"N/A" }}</span>
             </div>
             <div class="pago-summary-item">
                 <span class="label">Referencia</span>
@@ -76,6 +93,7 @@
         </div>
     </div>
 
+    {% if pago.alquiler %}
     <div class="row">
         <div class="col-md-6">
             <div class="pago-summary-card">
@@ -111,6 +129,7 @@
             </div>
         </div>
         <div class="col-md-6">
+            {% if cliente %}
             <div class="pago-summary-card">
                 <div class="card-header">
                     <h3 class="card-title">Información del Cliente</h3>
@@ -138,8 +157,10 @@
                     </div>
                 </div>
             </div>
+            {% endif %}
         </div>
     </div>
+    {% endif %}
 
     {% if pago.notas %}
     <div class="pago-summary-card">

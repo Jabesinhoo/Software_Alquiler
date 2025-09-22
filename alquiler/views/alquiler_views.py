@@ -794,10 +794,13 @@ def finalizar_alquiler(request, id):
     fecha_vencimiento = alquiler.fecha_vencimiento
     fecha_actual = date.today()
 
-    # ✅ Solo impedir si es ANTES de la fecha de vencimiento
-    if fecha_actual < fecha_vencimiento:
-        messages.error(request, "No se puede finalizar el alquiler antes de la fecha de vencimiento.")
-        return redirect('alquiler:listar_alquileres')
+    # Solo impedir si hay fecha de vencimiento definida
+    if fecha_vencimiento:
+        if fecha_actual < fecha_vencimiento:
+            messages.error(request, "No se puede finalizar el alquiler antes de la fecha de vencimiento.")
+            return redirect('alquiler:listar_alquileres')
+    else:
+        messages.warning(request, "El alquiler no tenía fecha de vencimiento definida. Se finalizó igualmente.")
 
     alquiler.estado_alquiler = 'finalizado'
     alquiler.save()
@@ -829,7 +832,6 @@ def finalizar_alquiler(request, id):
 
     messages.success(request, "Alquiler finalizado exitosamente. Los equipos han sido liberados.")
     return redirect('alquiler:listar_alquileres')
-
 
 @login_required
 @permission_required('alquiler.change_alquiler', raise_exception=True)

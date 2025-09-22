@@ -8,7 +8,6 @@ class PagoForm(forms.ModelForm):
     class Meta:
         model = Pago
         fields = [
-            'alquiler',
             'monto',
             'metodo_pago',
             'estado_pago',
@@ -30,24 +29,31 @@ class PagoForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        alquiler = self.instance.alquiler  # Garantizamos que es objeto, no ID
+        alquiler = self.instance.alquiler  # Obtenemos el objeto alquiler
 
         if alquiler:
-            max_saldo = alquiler.saldo_pendiente if alquiler.saldo_pendiente is not None else Decimal('0.00')
-            self.fields['monto'].widget.attrs.update({'max': max_saldo})
+            max_saldo = alquiler.saldo_pendiente or Decimal('0.00')
+            if max_saldo > 0:
+                # Permitimos edición normal con límite máximo
+                self.fields['monto'].widget.attrs.update({'max': max_saldo})
+            else:
+                # Bloqueamos edición si ya no hay saldo pendiente
+                self.fields['monto'].widget.attrs.update({'readonly': True})
 
     def clean_monto(self):
         monto = self.cleaned_data.get('monto')
         alquiler = self.instance.alquiler
 
         if alquiler:
-            saldo_pendiente = alquiler.saldo_pendiente if alquiler.saldo_pendiente is not None else Decimal('0.00')
-            if monto is not None and monto > saldo_pendiente:
+            saldo_pendiente = alquiler.saldo_pendiente or Decimal('0.00')
+
+            # Solo validamos cuando el saldo pendiente > 0
+            if saldo_pendiente > 0 and monto is not None and monto > saldo_pendiente:
                 raise forms.ValidationError(
                     f"El monto no puede ser mayor al saldo pendiente (${saldo_pendiente})"
                 )
-        return monto
 
+        return monto
 
 class PagoParcialForm(PagoForm):
     def __init__(self, *args, **kwargs):
