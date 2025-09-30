@@ -375,8 +375,9 @@ def editar_usuario(request, usuario_uuid):
             # Actualizar grupo del usuario si cambió el rol
             if 'rol' in form.changed_data:
                 usuario.groups.clear()
-                if usuario.rol and usuario.rol.grupo:
-                    usuario.groups.add(usuario.rol.grupo)
+                if usuario.rol:
+                    usuario.groups.add(usuario.rol)
+
             
             messages.success(request, 'Usuario actualizado correctamente')
             
