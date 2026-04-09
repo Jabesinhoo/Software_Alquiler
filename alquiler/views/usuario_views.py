@@ -659,7 +659,6 @@ def auditoria_usuario(request, usuario_uuid):
         success_data.append(success)
         failed_data.append(failed)
 
-        # Avanzar al siguiente mes
         if current_month.month == 12:
             current_month = current_month.replace(year=current_month.year + 1, month=1)
         else:
